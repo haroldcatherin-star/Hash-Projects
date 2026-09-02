@@ -1,310 +1,380 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>The Hash Projects</title>
 <style>
   :root{
-    --bg: #f4f1ea;
-    --bg-alt: #ffffff;
-    --ink: #1c1a17;
-    --ink-soft: #6b6459;
-    --line: #e4ddce;
-    --accent: #ff5e3a;
-    --accent-ink: #ffffff;
-    --chip-bg: #ffffff;
-    --chip-border: #e4ddce;
-    --shadow: 0 1px 2px rgba(28,26,23,.06), 0 8px 20px -10px rgba(28,26,23,.18);
-    --card-radius: 14px;
-    --c-docx: #2b579a; --c-docx-bg: #e8eefb;
-    --c-html: #e34c26; --c-html-bg: #fdeae3;
-    --c-pdf:  #d93025; --c-pdf-bg:  #fbe6e4;
-    --c-xlsx: #1d6f42; --c-xlsx-bg: #e4f2ea;
-    --c-pptx: #d24726; --c-pptx-bg: #fbe7e0;
-    --c-md:   #5b5346; --c-md-bg:   #ece7dc;
-    --c-zip:  #7a6f5d; --c-zip-bg:  #efeae0;
-    --c-link: #7c3aed; --c-link-bg: #efe6fd;
-    --c-other:#3d3a34; --c-other-bg:#eae6db;
+    --bg: #0b0b0a;
+    --text: #c9c7bd;
+    --text-dim: #6f6d65;
+    --line: #232220;
+    --card-bg: #121211;
+    --invert-bg: #c9c7bd;
+    --invert-fg: #0b0b0a;
   }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --bg: #15130f;
-      --bg-alt: #1d1a15;
-      --ink: #f2ede2;
-      --ink-soft: #a89f8c;
-      --line: #322e26;
-      --chip-bg: #221f19;
-      --chip-border: #3a352b;
-      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 24px -12px rgba(0,0,0,.6);
-      --c-docx-bg: #1c2740; --c-html-bg: #3a2117; --c-pdf-bg: #3a1e1c;
-      --c-xlsx-bg: #17301f; --c-pptx-bg: #3a2015; --c-md-bg: #29261d;
-      --c-zip-bg: #29251d; --c-link-bg: #271c3a; --c-other-bg: #262319;
-    }
-  }
-  *{box-sizing:border-box;}
+  *{ box-sizing:border-box; margin:0; padding:0; }
+  html,body{ background:var(--bg); color:var(--text); min-height:100%; }
   body{
-    margin:0; background:var(--bg); color:var(--ink);
-    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, Helvetica, Arial, sans-serif;
-    min-height:100vh;
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing:antialiased;
   }
-  .wrap{ max-width:1180px; margin:0 auto; padding:0 24px 80px; }
 
-  header.top{ padding:48px 24px 28px; text-align:center; }
-  .brand{ display:inline-flex; align-items:center; gap:10px; font-size:2rem; font-weight:800; letter-spacing:-0.02em; }
-  .brand .hash{ color:var(--accent); font-size:2.2rem; }
-  .tagline{ margin:8px 0 0; color:var(--ink-soft); font-size:.98rem; }
+  .wrap{ max-width:1180px; margin:0 auto; padding:0 20px 100px; }
 
+  /* ---- header ---- */
+  header{ padding:64px 20px 40px; text-align:center; border-bottom:1px solid var(--line); }
+  .word{
+    font-size:clamp(2rem,6vw,3.4rem); font-weight:900; text-transform:uppercase;
+    letter-spacing:-0.01em; line-height:1; color:var(--text);
+  }
+  .tag{
+    margin-top:14px; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  /* ---- toolbar ---- */
   .toolbar{
-    max-width:1180px; margin:0 auto 28px; padding:0 24px;
-    display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between;
+    display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between;
+    padding:28px 0 18px;
   }
   .search{
-    flex:1 1 260px; display:flex; align-items:center; gap:8px;
-    background:var(--bg-alt); border:1px solid var(--line); border-radius:999px;
-    padding:10px 16px; box-shadow:var(--shadow);
+    flex:1 1 240px; background:transparent; border:1px solid var(--line); border-radius:0;
+    padding:12px 14px;
   }
   .search input{
-    border:none; outline:none; background:transparent; color:var(--ink); font-size:.95rem; width:100%;
+    width:100%; background:transparent; border:none; outline:none; color:var(--text);
+    font-size:.82rem; letter-spacing:.04em; text-transform:uppercase;
   }
-  .search svg{ flex:none; opacity:.55; }
+  .search input::placeholder{ color:var(--text-dim); }
+  .count{ font-size:.82rem; color:var(--text-dim); letter-spacing:.04em; min-width:1.2em; text-align:right; }
 
-  .chips{ display:flex; flex-wrap:wrap; gap:8px; }
-  .chip{
-    border:1px solid var(--chip-border); background:var(--chip-bg); color:var(--ink-soft);
-    padding:7px 14px; border-radius:999px; font-size:.85rem; cursor:pointer; user-select:none;
-    transition:all .15s ease;
+  /* ---- dropzone ---- */
+  .dropzone{
+    border:1px dashed var(--line); padding:18px; text-align:center; cursor:pointer;
+    transition:border-color .15s, color .15s; margin-bottom:8px;
   }
-  .chip:hover{ color:var(--ink); border-color:var(--accent); }
-  .chip.active{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+  .dropzone.drag{ border-color:var(--text-dim); color:var(--text); }
+  .dropzone span{
+    font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--text-dim);
+  }
+  .dropzone.drag span{ color:var(--text); }
+  #fileInput{ display:none; }
+  .msg{ font-size:.7rem; letter-spacing:.05em; text-transform:uppercase; padding:10px 2px; min-height:1.4em; color:var(--text-dim); }
 
-  .board{
-    column-count:1; column-gap:18px;
+  /* ---- grid ---- */
+  .grid{
+    display:grid; grid-template-columns:1fr; gap:1px; background:var(--line);
+    border:1px solid var(--line); margin-top:30px;
   }
-  @media(min-width:640px){ .board{ column-count:2; } }
-  @media(min-width:940px){ .board{ column-count:3; } }
-  @media(min-width:1180px){ .board{ column-count:4; } }
+  @media(min-width:640px){ .grid{ grid-template-columns:repeat(2,1fr); } }
+  @media(min-width:940px){ .grid{ grid-template-columns:repeat(3,1fr); } }
+  @media(min-width:1180px){ .grid{ grid-template-columns:repeat(4,1fr); } }
 
   .card{
-    break-inside:avoid; margin:0 0 18px; background:var(--bg-alt);
-    border:1px solid var(--line); border-radius:var(--card-radius);
-    box-shadow:var(--shadow); overflow:hidden; display:flex; flex-direction:column;
-    transition:transform .15s ease, box-shadow .15s ease;
+    background:var(--card-bg); padding:20px 18px; display:flex; flex-direction:column;
+    gap:8px; min-height:170px; transition:background .12s, color .12s;
   }
-  .card:hover{ transform:translateY(-3px); }
-  .card-top{ padding:16px 18px 0; display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
-  .type-badge{
-    display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700;
-    text-transform:uppercase; letter-spacing:.04em; padding:4px 9px; border-radius:999px;
-  }
-  .pin{ color:var(--accent); font-size:1rem; line-height:1; }
-  .card-body{ padding:10px 18px 4px; }
-  .card-body h3{ margin:0 0 6px; font-size:1.05rem; line-height:1.3; }
-  .card-body p{ margin:0; color:var(--ink-soft); font-size:.9rem; line-height:1.5; }
-  .tags{ display:flex; flex-wrap:wrap; gap:6px; padding:12px 18px 0; }
-  .tag{ font-size:.72rem; color:var(--ink-soft); background:var(--bg); border:1px solid var(--line); padding:2px 9px; border-radius:999px; }
-  .card-foot{
-    margin-top:auto; padding:14px 18px 18px; display:flex; align-items:center; justify-content:space-between; gap:10px;
-  }
-  .date{ font-size:.75rem; color:var(--ink-soft); }
-  .open{
-    font-size:.82rem; font-weight:700; text-decoration:none; color:var(--ink);
-    border:1px solid var(--line); padding:6px 13px; border-radius:999px; white-space:nowrap;
-  }
-  .open:hover{ border-color:var(--accent); color:var(--accent); }
+  .card:hover{ background:var(--invert-bg); color:var(--invert-fg); }
+  .card:hover .card-meta{ color:#4a4944; }
+  .card:hover .card-actions{ border-top-color:#9a988e; }
 
-  .empty{ text-align:center; color:var(--ink-soft); padding:60px 20px; }
+  .card-title, .card-desc{
+    cursor:text; outline:none; border-radius:1px;
+  }
+  .card-title:hover, .card-desc:hover, .card-title:focus, .card-desc:focus{
+    text-decoration:underline dotted; text-underline-offset:3px;
+  }
+  .card-title{
+    font-size:.95rem; font-weight:800; text-transform:uppercase; letter-spacing:.01em;
+    line-height:1.25; word-break:break-word;
+  }
+  .card-desc{
+    font-size:.78rem; line-height:1.4; color:var(--text-dim); word-break:break-word; min-height:1.3em;
+  }
+  .card:hover .card-desc{ color:#3f3e39; }
+  .card-desc:empty:before{ content: attr(data-placeholder); }
+
+  .card-meta{ font-size:.66rem; letter-spacing:.04em; color:var(--text-dim); transition:color .12s; }
+
+  .card-actions{
+    margin-top:auto; display:flex; gap:14px; flex-wrap:wrap; padding-top:10px;
+    border-top:1px solid var(--line); transition:border-color .12s;
+  }
+  .card-actions button{
+    background:none; border:none; padding:0; cursor:pointer; font-family:inherit;
+    font-size:.66rem; letter-spacing:.08em; text-transform:uppercase; color:inherit;
+    text-decoration:underline; text-underline-offset:3px; opacity:.75;
+  }
+  .card-actions button:hover{ opacity:1; }
+
+  .empty{
+    grid-column:1/-1; text-align:center; padding:60px 20px; color:var(--text-dim);
+    font-size:.75rem; letter-spacing:.08em; text-transform:uppercase;
+  }
 
   footer{
-    max-width:1180px; margin:40px auto 0; padding:20px 24px; border-top:1px solid var(--line);
-    color:var(--ink-soft); font-size:.82rem; line-height:1.6;
+    max-width:1180px; margin:50px auto 0; padding:22px 20px 0; border-top:1px solid var(--line);
+    color:var(--text-dim); font-size:.68rem; letter-spacing:.03em; line-height:1.7;
   }
-  footer code{ background:var(--chip-bg); border:1px solid var(--chip-border); padding:1px 6px; border-radius:6px; }
 </style>
 </head>
 <body>
 
-<header class="top">
-  <div class="brand"><span class="hash">#</span>The Hash Projects</div>
-  <p class="tagline">Mon espace perso — cours, projets, docs &amp; ressources en vrac.</p>
+<header>
+  <div class="word">HASH PROJECTS</div>
+  <p class="tag">Personal archive</p>
 </header>
 
-<div class="toolbar">
-  <div class="search">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input id="searchInput" type="text" placeholder="Rechercher un titre, un tag...">
-  </div>
-  <div class="chips" id="chips"></div>
-</div>
-
 <div class="wrap">
-  <div class="board" id="board"></div>
-  <p class="empty" id="emptyMsg" style="display:none;">Aucune carte ne correspond à ta recherche.</p>
+
+  <div class="toolbar">
+    <div class="search">
+      <input id="searchInput" type="text" placeholder="[z]">
+    </div>
+    <span class="count" id="count">0</span>
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <span>drop</span>
+    <input type="file" id="fileInput" accept=".html,.htm" multiple>
+  </div>
+  <div class="msg" id="msg"></div>
+
+  <div class="grid" id="grid"></div>
+
 </div>
 
 <footer>
-  Board statique — sans base de données, tout est dans ce fichier.<br>
-  Pour ajouter un document : dépose le fichier à côté de <code>the-hash-projects.html</code> (par ex. dans un dossier <code>/files/</code>), puis ajoute une entrée dans le tableau <code>DATA</code> en haut du script, tout en bas du fichier HTML.
+  Files are stored locally in this browser — not on a server, not synced elsewhere.
 </footer>
 
 <script>
-/* ============================================================
-   THE HASH PROJECTS — données du board
-   ------------------------------------------------------------
-   Ajoute / modifie / supprime une entrée = un objet ci-dessous.
-   Champs :
-     title       (string)  titre de la carte
-     type        (string)  'docx' | 'html' | 'pdf' | 'xlsx' | 'pptx' | 'md' | 'zip' | 'link' | 'other'
-     desc        (string)  courte description
-     tags        (array)   ex: ["S1","Maths"]
-     date        (string)  ex: "2026-09-02" (libre, affiché tel quel)
-     href        (string)  chemin relatif vers le fichier, ou URL
-     category    (string)  utilisé pour les filtres (ex: "Cours", "Projet", "Ressource", "Perso")
-     pinned      (bool)    true = étoile affichée
-   ============================================================ */
-const DATA = [
-  {
-    title: "TP Circuits — Analyse d'un filtre RC",
-    type: "docx",
-    desc: "Compte-rendu du TP d'électronique, semaine 3.",
-    tags: ["Électronique", "S1"],
-    date: "2026-09-01",
-    href: "files/tp-filtre-rc.docx",
-    category: "Cours",
-    pinned: true
-  },
-  {
-    title: "Projet — Site vitrine associatif",
-    type: "html",
-    desc: "Prototype du site pour l'asso étudiante, à finaliser.",
-    tags: ["Web", "Projet perso"],
-    date: "2026-08-28",
-    href: "files/projet-asso/index.html",
-    category: "Projet",
-    pinned: false
-  },
-  {
-    title: "Poly de cours — Mécanique du point",
-    type: "pdf",
-    desc: "Support de cours complet, chapitres 1 à 4.",
-    tags: ["Mécanique", "S1"],
-    date: "2026-08-20",
-    href: "files/meca-point.pdf",
-    category: "Cours",
-    pinned: false
-  },
-  {
-    title: "Feuille de calcul — Bilan énergétique",
-    type: "xlsx",
-    desc: "Calculs pour le projet de thermo.",
-    tags: ["Thermo", "Projet"],
-    date: "2026-08-15",
-    href: "files/bilan-energetique.xlsx",
-    category: "Projet",
-    pinned: false
-  },
-  {
-    title: "Soutenance — Présentation finale",
-    type: "pptx",
-    desc: "Slides pour la présentation de fin de semestre.",
-    tags: ["Présentation"],
-    date: "2026-08-10",
-    href: "files/soutenance.pptx",
-    category: "Projet",
-    pinned: false
-  },
-  {
-    title: "Notes en vrac",
-    type: "md",
-    desc: "Idées et notes personnelles, non triées.",
-    tags: ["Perso"],
-    date: "2026-08-05",
-    href: "files/notes.md",
-    category: "Perso",
-    pinned: false
-  }
-];
+/* ---------- IndexedDB helper ---------- */
+const DB_NAME = "hashProjectsDB";
+const STORE = "files";
 
-/* ============================================================ */
-
-const TYPE_META = {
-  docx:  { label: "DOCX", icon: "📄" },
-  html:  { label: "HTML", icon: "🌐" },
-  pdf:   { label: "PDF",  icon: "📕" },
-  xlsx:  { label: "XLSX", icon: "📊" },
-  pptx:  { label: "PPTX", icon: "📽️" },
-  md:    { label: "MD",   icon: "📝" },
-  zip:   { label: "ZIP",  icon: "🗜️" },
-  link:  { label: "LIEN", icon: "🔗" },
-  other: { label: "FICHIER", icon: "📁" }
-};
-
-const board = document.getElementById('board');
-const chipsEl = document.getElementById('chips');
-const searchInput = document.getElementById('searchInput');
-const emptyMsg = document.getElementById('emptyMsg');
-
-const categories = ["Tout", ...Array.from(new Set(DATA.map(d => d.category)))];
-let activeCategory = "Tout";
-let query = "";
-
-function renderChips(){
-  chipsEl.innerHTML = "";
-  categories.forEach(cat => {
-    const el = document.createElement('button');
-    el.className = "chip" + (cat === activeCategory ? " active" : "");
-    el.textContent = cat;
-    el.addEventListener('click', () => { activeCategory = cat; renderChips(); renderBoard(); });
-    chipsEl.appendChild(el);
+function openDB(){
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(STORE)){
+        db.createObjectStore(STORE, { keyPath: "id" });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
   });
 }
 
-function cardHTML(item){
-  const meta = TYPE_META[item.type] || TYPE_META.other;
-  const tags = (item.tags || []).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join("");
-  return `
-    <article class="card">
-      <div class="card-top">
-        <span class="type-badge" style="color:var(--c-${item.type}, var(--c-other)); background:var(--c-${item.type}-bg, var(--c-other-bg));">${meta.icon} ${meta.label}</span>
-        ${item.pinned ? '<span class="pin" title="Épinglé">★</span>' : ''}
-      </div>
-      <div class="card-body">
-        <h3>${escapeHtml(item.title)}</h3>
-        <p>${escapeHtml(item.desc || "")}</p>
-      </div>
-      ${tags ? `<div class="tags">${tags}</div>` : ''}
-      <div class="card-foot">
-        <span class="date">${escapeHtml(item.date || "")}</span>
-        <a class="open" href="${escapeAttr(item.href)}" target="_blank" rel="noopener">Ouvrir ↗</a>
-      </div>
-    </article>
-  `;
+async function dbGetAll(){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readonly");
+    const req = tx.objectStore(STORE).getAll();
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
 }
+
+async function dbPut(record){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).put(record);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+async function dbDelete(id){
+  const db = await openDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE, "readwrite");
+    tx.objectStore(STORE).delete(id);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+/* ---------- state ---------- */
+let files = [];
+let query = "";
+
+const grid = document.getElementById('grid');
+const countEl = document.getElementById('count');
+const msgEl = document.getElementById('msg');
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+const searchInput = document.getElementById('searchInput');
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
-function escapeAttr(s){ return escapeHtml(s); }
 
-function renderBoard(){
-  const q = query.trim().toLowerCase();
-  const filtered = DATA
-    .filter(d => activeCategory === "Tout" || d.category === activeCategory)
-    .filter(d => {
-      if (!q) return true;
-      const hay = [d.title, d.desc, ...(d.tags||[])].join(" ").toLowerCase();
-      return hay.includes(q);
-    })
-    .sort((a,b) => (b.pinned === true) - (a.pinned === true));
-
-  board.innerHTML = filtered.map(cardHTML).join("");
-  emptyMsg.style.display = filtered.length ? "none" : "block";
+function formatSize(bytes){
+  if (bytes < 1024) return bytes + " B";
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + " KB";
+  return (bytes/(1024*1024)).toFixed(1) + " MB";
 }
 
-searchInput.addEventListener('input', (e) => { query = e.target.value; renderBoard(); });
+function extractTitle(html, fallback){
+  try{
+    const m = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+    if (m && m[1].trim()) return m[1].trim();
+  }catch(e){}
+  return fallback;
+}
 
-renderChips();
-renderBoard();
+function showMsg(text){
+  msgEl.textContent = text;
+  if (text) setTimeout(() => { if (msgEl.textContent === text) msgEl.textContent = ""; }, 4000);
+}
+
+/* ---------- render ---------- */
+function render(){
+  const q = query.trim().toLowerCase();
+  const list = files
+    .filter(f => !q || (f.title + " " + f.name + " " + (f.description||"")).toLowerCase().includes(q))
+    .sort((a,b) => b.date.localeCompare(a.date));
+
+  countEl.textContent = files.length;
+
+  if (!list.length){
+    grid.innerHTML = `<div class="empty">${files.length ? "no results" : "no files yet"}</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(f => `
+    <div class="card" data-id="${f.id}">
+      <div class="card-title" contenteditable="true" data-field="title">${escapeHtml(f.title)}</div>
+      <div class="card-desc" contenteditable="true" data-field="description" data-placeholder="add description...">${escapeHtml(f.description || "")}</div>
+      <div class="card-meta">${escapeHtml(f.name)} — ${formatSize(f.size)}</div>
+      <div class="card-meta">${escapeHtml(f.date)}</div>
+      <div class="card-actions">
+        <button data-action="open">Open</button>
+        <button data-action="download">Download</button>
+        <button data-action="delete">Delete</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+grid.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const card = e.target.closest('.card');
+  const id = card.dataset.id;
+  const file = files.find(f => f.id === id);
+  if (!file) return;
+  const action = btn.dataset.action;
+
+  if (action === 'open'){
+    const blob = new Blob([file.content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  if (action === 'download'){
+    const blob = new Blob([file.content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  if (action === 'delete'){
+    if (!confirm('Delete "' + file.title + '"?')) return;
+    await dbDelete(id);
+    files = files.filter(f => f.id !== id);
+    render();
+  }
+});
+
+/* ---------- inline rename / description edit ---------- */
+grid.addEventListener('blur', async (e) => {
+  const el = e.target;
+  if (!el.matches('[contenteditable]')) return;
+  const card = el.closest('.card');
+  const id = card.dataset.id;
+  const file = files.find(f => f.id === id);
+  if (!file) return;
+  const field = el.dataset.field;
+  let value = el.textContent.trim();
+
+  if (field === 'title' && !value){
+    value = file.title; // don't allow empty title
+    el.textContent = value;
+  }
+
+  file[field] = value;
+  await dbPut(file);
+}, true);
+
+grid.addEventListener('keydown', (e) => {
+  if (e.target.matches('[contenteditable]') && e.key === 'Enter'){
+    e.preventDefault();
+    e.target.blur();
+  }
+});
+
+/* ---------- upload ---------- */
+async function handleFiles(fileList){
+  const arr = Array.from(fileList);
+  let added = 0, rejected = 0;
+
+  for (const f of arr){
+    const isHtml = /\.(html?|HTML?)$/.test(f.name);
+    if (!isHtml){ rejected++; continue; }
+    const content = await f.text();
+    const record = {
+      id: (crypto.randomUUID ? crypto.randomUUID() : "f" + Date.now() + Math.random().toString(16).slice(2)),
+      name: f.name,
+      title: extractTitle(content, f.name.replace(/\.(html?|HTML?)$/, '')),
+      description: "",
+      size: f.size,
+      date: new Date().toISOString().slice(0,10),
+      content
+    };
+    await dbPut(record);
+    files.push(record);
+    added++;
+  }
+
+  render();
+  if (rejected && added) showMsg(added + " file(s) added, " + rejected + " skipped (not .html)");
+  else if (rejected) showMsg(rejected + " file(s) skipped — only .html/.htm accepted");
+  else if (added) showMsg(added + " file(s) added");
+}
+
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); fileInput.value = ""; });
+
+['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+  e.preventDefault(); e.stopPropagation(); dropzone.classList.add('drag');
+}));
+['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+  e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('drag');
+}));
+dropzone.addEventListener('drop', (e) => {
+  if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+});
+
+/* ---------- search ---------- */
+searchInput.addEventListener('input', (e) => { query = e.target.value; render(); });
+
+/* ---------- init ---------- */
+(async function init(){
+  try{
+    files = await dbGetAll();
+    files.forEach(f => { if (f.description === undefined) f.description = ""; });
+  }catch(e){
+    files = [];
+  }
+  render();
+})();
 </script>
 
 </body>
