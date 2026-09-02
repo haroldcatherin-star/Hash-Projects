@@ -120,7 +120,7 @@
     color:var(--text-dim); font-size:.68rem; letter-spacing:.03em; line-height:1.7;
   }
 
-  /* ---- gate + secret overlay (shared) ---- */
+  /* ---- gate + secret overlay (shared base) ---- */
   .gate, .overlay{
     position:fixed; inset:0; background:var(--bg); z-index:1000;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px;
@@ -148,10 +148,113 @@
 
   .overlay-close{
     position:absolute; top:22px; right:26px; background:none; border:none; cursor:pointer;
-    color:var(--text-dim); font-size:1.1rem; font-family:inherit; line-height:1;
+    color:var(--text-dim); font-size:1.1rem; font-family:inherit; line-height:1; z-index:2;
   }
   .overlay-close:hover{ color:var(--text); }
-  .overlay-body{ width:100%; max-width:1180px; }
+  .overlay-body{ width:100%; max-width:720px; }
+
+  /* ---- secret compartment: chill ambience ---- */
+  #secretOverlay{
+    --bg: #f6efe3;
+    --text: #4a4234;
+    --text-dim: #a89b85;
+    --line: #e6dbc6;
+    --card-bg: #fffbf4;
+    --accent: #c08a5c;
+    overflow-y:auto;
+  }
+  .chill-lock{ font-size:1.6rem; opacity:.7; }
+  .overlay-body.chill{ max-width:560px; }
+
+  .chill-tabs{ display:flex; gap:8px; margin-bottom:26px; flex-wrap:wrap; justify-content:center; }
+  .chill-tab{
+    background:var(--card-bg); border:1px solid var(--line); color:var(--text-dim);
+    padding:9px 18px; border-radius:999px; font-family:inherit; font-size:.8rem;
+    cursor:pointer; transition:all .15s;
+  }
+  .chill-tab:hover{ color:var(--text); }
+  .chill-tab.active{
+    background:var(--accent); border-color:var(--accent); color:#fff8f0; font-weight:600;
+    box-shadow:0 3px 10px -4px rgba(192,138,92,.6);
+  }
+
+  .chill-add{ margin-top:16px; }
+  .chill-add input{
+    width:100%; background:var(--card-bg); border:1px solid var(--line); border-radius:14px;
+    padding:13px 16px; font-family:inherit; font-size:.85rem; color:var(--text); outline:none;
+    transition:border-color .15s;
+  }
+  .chill-add input::placeholder{ color:var(--text-dim); }
+  .chill-add input:focus{ border-color:var(--accent); }
+
+  .chill-empty{ color:var(--text-dim); font-size:.82rem; text-align:center; padding:18px 0; }
+
+  /* habit tracker */
+  .habit-table{
+    display:grid; grid-template-columns:1fr repeat(7,30px) 18px;
+    align-items:center; column-gap:8px; row-gap:12px;
+  }
+  .habit-table .head-cell{ font-size:.6rem; color:var(--text-dim); text-align:center; letter-spacing:.04em; }
+  .habit-row{ display:contents; }
+  .habit-row-name{
+    font-size:.84rem; font-weight:600; outline:none; word-break:break-word; cursor:text;
+  }
+  .habit-row-name:hover, .habit-row-name:focus{ text-decoration:underline dotted; text-underline-offset:3px; }
+  .habit-cell{
+    width:30px; height:30px; border-radius:9px; border:1px solid var(--line);
+    background:var(--card-bg); cursor:pointer; justify-self:center; transition:all .12s;
+  }
+  .habit-cell.today{ box-shadow:0 0 0 2px var(--text-dim) inset; }
+  .habit-del{
+    background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:.85rem;
+    font-family:inherit; opacity:0; transition:opacity .1s; justify-self:center;
+  }
+  .habit-table:hover .habit-del{ opacity:.55; }
+  .habit-del:hover{ opacity:1 !important; color:var(--text); }
+
+  /* to-do list */
+  .todo-row{ display:flex; align-items:center; gap:12px; padding:10px 2px; border-bottom:1px solid var(--line); }
+  .todo-check{
+    flex:none; width:21px; height:21px; border-radius:7px; border:1px solid var(--line);
+    background:var(--card-bg); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    font-size:.7rem; color:#fff8f0; transition:all .12s;
+  }
+  .todo-check.on{ background:var(--accent); border-color:var(--accent); }
+  .todo-text{ flex:1; font-size:.85rem; outline:none; word-break:break-word; cursor:text; }
+  .todo-text:hover, .todo-text:focus{ text-decoration:underline dotted; text-underline-offset:3px; }
+  .todo-row.done .todo-text{ color:var(--text-dim); text-decoration:line-through; }
+  .todo-del{
+    background:none; border:none; color:var(--text-dim); cursor:pointer; font-size:.85rem;
+    font-family:inherit; opacity:0; transition:opacity .1s;
+  }
+  .todo-row:hover .todo-del{ opacity:.55; }
+  .todo-del:hover{ opacity:1 !important; color:var(--text); }
+
+  /* mood tracker */
+  .mood-picker{ display:flex; gap:10px; justify-content:center; margin-bottom:26px; }
+  .mood-btn{
+    font-size:1.5rem; background:var(--card-bg); border:1px solid var(--line); border-radius:16px;
+    width:52px; height:52px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+    transition:all .12s;
+  }
+  .mood-btn:hover{ transform:translateY(-1px); }
+  .mood-btn.selected{ border-color:var(--accent); box-shadow:0 3px 10px -4px rgba(192,138,92,.5); transform:scale(1.06); }
+  .mood-strip{ display:flex; gap:10px; justify-content:center; }
+  .mood-day{ display:flex; flex-direction:column; align-items:center; gap:6px; font-size:.62rem; color:var(--text-dim); letter-spacing:.03em; }
+  .mood-day-emoji{
+    width:32px; height:32px; border-radius:10px; background:var(--card-bg); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:1rem;
+  }
+
+  /* notes */
+  #notesArea{
+    width:100%; min-height:220px; resize:vertical; background:var(--card-bg); border:1px solid var(--line);
+    border-radius:14px; padding:16px; font-family:inherit; font-size:.85rem; line-height:1.6;
+    color:var(--text); outline:none; transition:border-color .15s;
+  }
+  #notesArea::placeholder{ color:var(--text-dim); }
+  #notesArea:focus{ border-color:var(--accent); }
+  .chill-saved{ font-size:.68rem; color:var(--text-dim); text-align:right; padding-top:8px; min-height:1.4em; }
 </style>
 </head>
 <body>
@@ -197,24 +300,39 @@
   <button id="secretClose" class="overlay-close">×</button>
 
   <div id="secretGateWrap">
+    <div class="chill-lock">🔒</div>
     <input id="secretInput" class="code-input" type="password" placeholder="[code]" autocomplete="off">
   </div>
 
-  <div id="secretContent" class="overlay-body" style="display:none;">
-    <div class="toolbar">
-      <div class="search">
-        <input id="secretSearchInput" type="text" placeholder="[z]">
-      </div>
-      <span class="count" id="secretCount">0</span>
+  <div id="secretContent" class="overlay-body chill" style="display:none;">
+
+    <div class="chill-tabs">
+      <button class="chill-tab active" data-tab="habits">habits</button>
+      <button class="chill-tab" data-tab="todo">to-do</button>
+      <button class="chill-tab" data-tab="mood">mood</button>
+      <button class="chill-tab" data-tab="notes">notes</button>
     </div>
 
-    <div class="dropzone" id="secretDropzone">
-      <span>drop</span>
-      <input type="file" id="secretFileInput" accept=".html,.htm" multiple>
+    <div class="chill-panel" id="panel-habits">
+      <div id="habitGrid"></div>
+      <div class="chill-add"><input id="habitInput" type="text" placeholder="add a habit..."></div>
     </div>
-    <div class="msg" id="secretMsg"></div>
 
-    <div class="grid" id="secretGrid"></div>
+    <div class="chill-panel" id="panel-todo" hidden>
+      <div id="todoList"></div>
+      <div class="chill-add"><input id="todoInput" type="text" placeholder="add a task..."></div>
+    </div>
+
+    <div class="chill-panel" id="panel-mood" hidden>
+      <div class="mood-picker" id="moodPicker"></div>
+      <div class="mood-strip" id="moodStrip"></div>
+    </div>
+
+    <div class="chill-panel" id="panel-notes" hidden>
+      <textarea id="notesArea" placeholder="jot something down..."></textarea>
+      <div class="chill-saved" id="notesSaved"></div>
+    </div>
+
   </div>
 </div>
 
@@ -225,58 +343,75 @@
 const ACCESS_CODE = "changeme";  // required to view the site at all
 const SECRET_CODE = "shhh";      // required to open the secret compartment
 
-/* ---------- IndexedDB helper ---------- */
+/* ---------- IndexedDB helper (generic, multi-store) ---------- */
 const DB_NAME = "hashProjectsDB";
-const STORE = "files";
+const DB_VERSION = 3;
+const STORES = ["files", "habits", "todos", "moods", "notes"];
 
 function openDB(){
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
     req.onupgradeneeded = () => {
       const db = req.result;
-      if (!db.objectStoreNames.contains(STORE)){
-        db.createObjectStore(STORE, { keyPath: "id" });
-      }
+      STORES.forEach(s => { if (!db.objectStoreNames.contains(s)) db.createObjectStore(s, { keyPath: "id" }); });
     };
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-async function dbGetAll(){
+async function dbGetAll(store){
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readonly");
-    const req = tx.objectStore(STORE).getAll();
+    const tx = db.transaction(store, "readonly");
+    const req = tx.objectStore(store).getAll();
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
 }
 
-async function dbPut(record){
+async function dbPut(store, record){
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).put(record);
+    const tx = db.transaction(store, "readwrite");
+    tx.objectStore(store).put(record);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
-async function dbDelete(id){
+async function dbDelete(store, id){
   const db = await openDB();
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).delete(id);
+    const tx = db.transaction(store, "readwrite");
+    tx.objectStore(store).delete(id);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
-/* ---------- state ---------- */
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function last7Days(){
+  const arr = [];
+  const todayStr = new Date().toISOString().slice(0,10);
+  for (let i = 6; i >= 0; i--){
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0,10);
+    const label = d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0,2);
+    arr.push({ date: dateStr, label, isToday: dateStr === todayStr });
+  }
+  return arr;
+}
+
+/* ============================================================
+   MAIN BOARD — html files
+   ============================================================ */
 let files = [];
 let query = "";
-let secretQuery = "";
 
 const grid = document.getElementById('grid');
 const countEl = document.getElementById('count');
@@ -284,17 +419,6 @@ const msgEl = document.getElementById('msg');
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 const searchInput = document.getElementById('searchInput');
-
-const secretGrid = document.getElementById('secretGrid');
-const secretCountEl = document.getElementById('secretCount');
-const secretMsgEl = document.getElementById('secretMsg');
-const secretDropzone = document.getElementById('secretDropzone');
-const secretFileInput = document.getElementById('secretFileInput');
-const secretSearchInput = document.getElementById('secretSearchInput');
-
-function escapeHtml(s){
-  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
 
 function formatSize(bytes){
   if (bytes < 1024) return bytes + " B";
@@ -315,13 +439,20 @@ function showMsg(el, text){
   if (text) setTimeout(() => { if (el.textContent === text) el.textContent = ""; }, 4000);
 }
 
-function matchQuery(q){
-  return f => !q || (f.title + " " + f.name + " " + (f.description||"")).toLowerCase().includes(q);
-}
-function byDateDesc(a, b){ return b.date.localeCompare(a.date); }
+function render(){
+  const q = query.trim().toLowerCase();
+  const list = files
+    .filter(f => !q || (f.title + " " + f.name + " " + (f.description||"")).toLowerCase().includes(q))
+    .sort((a,b) => b.date.localeCompare(a.date));
 
-function cardsHTML(list){
-  return list.map(f => `
+  countEl.textContent = files.length;
+
+  if (!list.length){
+    grid.innerHTML = `<div class="empty">${files.length ? "no results" : "no files yet"}</div>`;
+    return;
+  }
+
+  grid.innerHTML = list.map(f => `
     <div class="card" data-id="${f.id}">
       <div class="card-title" contenteditable="true" data-field="title">${escapeHtml(f.title)}</div>
       <div class="card-desc" contenteditable="true" data-field="description" data-placeholder="add description...">${escapeHtml(f.description || "")}</div>
@@ -336,90 +467,64 @@ function cardsHTML(list){
   `).join("");
 }
 
-function renderInto(gridEl, countEl, list){
-  countEl.textContent = list.length;
-  gridEl.innerHTML = list.length ? cardsHTML(list) : `<div class="empty">no files yet</div>`;
-}
+grid.addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-action]');
+  if (!btn) return;
+  const card = e.target.closest('.card');
+  const id = card.dataset.id;
+  const file = files.find(f => f.id === id);
+  if (!file) return;
+  const action = btn.dataset.action;
 
-/* ---------- render: main ---------- */
-function render(){
-  const q = query.trim().toLowerCase();
-  const list = files.filter(f => !f.secret).filter(matchQuery(q)).sort(byDateDesc);
-  renderInto(grid, countEl, list);
-}
+  if (action === 'open'){
+    const blob = new Blob([file.content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    window.open(url, '_blank');
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  if (action === 'download'){
+    const blob = new Blob([file.content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = file.name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+  }
+  if (action === 'delete'){
+    if (!confirm('Delete "' + file.title + '"?')) return;
+    await dbDelete('files', id);
+    files = files.filter(f => f.id !== id);
+    render();
+  }
+});
 
-/* ---------- render: secret ---------- */
-function renderSecret(){
-  const q = secretQuery.trim().toLowerCase();
-  const list = files.filter(f => f.secret).filter(matchQuery(q)).sort(byDateDesc);
-  renderInto(secretGrid, secretCountEl, list);
-}
+grid.addEventListener('blur', async (e) => {
+  const el = e.target;
+  if (!el.matches('[contenteditable]')) return;
+  const card = el.closest('.card');
+  const id = card.dataset.id;
+  const file = files.find(f => f.id === id);
+  if (!file) return;
+  const field = el.dataset.field;
+  let value = el.textContent.trim();
 
-/* ---------- shared card interactions ---------- */
-function wireGrid(gridEl, afterChange){
-  gridEl.addEventListener('click', async (e) => {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    const card = e.target.closest('.card');
-    const id = card.dataset.id;
-    const file = files.find(f => f.id === id);
-    if (!file) return;
-    const action = btn.dataset.action;
+  if (field === 'title' && !value){
+    value = file.title;
+    el.textContent = value;
+  }
 
-    if (action === 'open'){
-      const blob = new Blob([file.content], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    }
-    if (action === 'download'){
-      const blob = new Blob([file.content], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = file.name;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 30000);
-    }
-    if (action === 'delete'){
-      if (!confirm('Delete "' + file.title + '"?')) return;
-      await dbDelete(id);
-      files = files.filter(f => f.id !== id);
-      afterChange();
-    }
-  });
+  file[field] = value;
+  await dbPut('files', file);
+}, true);
 
-  gridEl.addEventListener('blur', async (e) => {
-    const el = e.target;
-    if (!el.matches('[contenteditable]')) return;
-    const card = el.closest('.card');
-    const id = card.dataset.id;
-    const file = files.find(f => f.id === id);
-    if (!file) return;
-    const field = el.dataset.field;
-    let value = el.textContent.trim();
+grid.addEventListener('keydown', (e) => {
+  if (e.target.matches('[contenteditable]') && e.key === 'Enter'){
+    e.preventDefault();
+    e.target.blur();
+  }
+});
 
-    if (field === 'title' && !value){
-      value = file.title;
-      el.textContent = value;
-    }
-
-    file[field] = value;
-    await dbPut(file);
-  }, true);
-
-  gridEl.addEventListener('keydown', (e) => {
-    if (e.target.matches('[contenteditable]') && e.key === 'Enter'){
-      e.preventDefault();
-      e.target.blur();
-    }
-  });
-}
-
-wireGrid(grid, render);
-wireGrid(secretGrid, renderSecret);
-
-/* ---------- upload ---------- */
-async function handleFiles(fileList, secret, msgElement, afterFn){
+async function handleFiles(fileList){
   const arr = Array.from(fileList);
   let added = 0, rejected = 0;
 
@@ -434,41 +539,33 @@ async function handleFiles(fileList, secret, msgElement, afterFn){
       description: "",
       size: f.size,
       date: new Date().toISOString().slice(0,10),
-      content,
-      secret: !!secret
+      content
     };
-    await dbPut(record);
+    await dbPut('files', record);
     files.push(record);
     added++;
   }
 
-  afterFn();
-  if (rejected && added) showMsg(msgElement, added + " file(s) added, " + rejected + " skipped (not .html)");
-  else if (rejected) showMsg(msgElement, rejected + " file(s) skipped — only .html/.htm accepted");
-  else if (added) showMsg(msgElement, added + " file(s) added");
+  render();
+  if (rejected && added) showMsg(msgEl, added + " file(s) added, " + rejected + " skipped (not .html)");
+  else if (rejected) showMsg(msgEl, rejected + " file(s) skipped — only .html/.htm accepted");
+  else if (added) showMsg(msgEl, added + " file(s) added");
 }
 
-function wireDropzone(zoneEl, inputEl, secret, msgElement, afterFn){
-  zoneEl.addEventListener('click', () => inputEl.click());
-  inputEl.addEventListener('change', (e) => { handleFiles(e.target.files, secret, msgElement, afterFn); inputEl.value = ""; });
+dropzone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); fileInput.value = ""; });
 
-  ['dragenter','dragover'].forEach(evt => zoneEl.addEventListener(evt, (e) => {
-    e.preventDefault(); e.stopPropagation(); zoneEl.classList.add('drag');
-  }));
-  ['dragleave','drop'].forEach(evt => zoneEl.addEventListener(evt, (e) => {
-    e.preventDefault(); e.stopPropagation(); zoneEl.classList.remove('drag');
-  }));
-  zoneEl.addEventListener('drop', (e) => {
-    if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files, secret, msgElement, afterFn);
-  });
-}
+['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+  e.preventDefault(); e.stopPropagation(); dropzone.classList.add('drag');
+}));
+['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
+  e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('drag');
+}));
+dropzone.addEventListener('drop', (e) => {
+  if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+});
 
-wireDropzone(dropzone, fileInput, false, msgEl, render);
-wireDropzone(secretDropzone, secretFileInput, true, secretMsgEl, renderSecret);
-
-/* ---------- search ---------- */
 searchInput.addEventListener('input', (e) => { query = e.target.value; render(); });
-secretSearchInput.addEventListener('input', (e) => { secretQuery = e.target.value; renderSecret(); });
 
 /* ============================================================
    GATE — site-wide access code
@@ -479,11 +576,8 @@ const app = document.getElementById('app');
 
 async function initApp(){
   try{
-    files = await dbGetAll();
-    files.forEach(f => {
-      if (f.description === undefined) f.description = "";
-      if (f.secret === undefined) f.secret = false;
-    });
+    files = await dbGetAll('files');
+    files.forEach(f => { if (f.description === undefined) f.description = ""; });
   }catch(e){
     files = [];
   }
@@ -519,7 +613,9 @@ gateInput.addEventListener('keydown', (e) => {
 });
 
 /* ============================================================
-   SECRET COMPARTMENT — triggered by the hidden "S" in the logo
+   SECRET COMPARTMENT — chill corner
+   habits · to-do · mood · notes
+   triggered by the hidden "S" in the logo
    ============================================================ */
 const secretTrigger = document.getElementById('secretTrigger');
 const secretOverlay = document.getElementById('secretOverlay');
@@ -528,10 +624,243 @@ const secretGateWrap = document.getElementById('secretGateWrap');
 const secretContent = document.getElementById('secretContent');
 const secretInput = document.getElementById('secretInput');
 
-function showSecretContent(){
+let chillLoaded = false;
+
+/* ---- tabs ---- */
+const chillTabs = document.querySelectorAll('.chill-tab');
+chillTabs.forEach(tab => tab.addEventListener('click', () => {
+  chillTabs.forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelectorAll('.chill-panel').forEach(p => p.hidden = true);
+  document.getElementById('panel-' + tab.dataset.tab).hidden = false;
+}));
+
+/* ---- habit tracker ---- */
+const HABIT_COLORS = ['#8fae8b','#d99a9a','#c08a5c','#9ab8d9','#b6a4d9','#d9b95c','#7fbfae'];
+let habits = [];
+const habitGrid = document.getElementById('habitGrid');
+const habitInput = document.getElementById('habitInput');
+
+function renderHabits(){
+  const days = last7Days();
+  const sorted = habits.slice().sort((a,b) => a.order - b.order);
+
+  if (!sorted.length){
+    habitGrid.innerHTML = `<div class="chill-empty">no habits yet — add one below</div>`;
+    return;
+  }
+
+  let html = `<div class="habit-table">`;
+  html += `<div></div>`;
+  days.forEach(d => { html += `<div class="head-cell">${d.label}</div>`; });
+  html += `<div></div>`;
+
+  sorted.forEach(h => {
+    html += `<div class="habit-row" data-id="${h.id}">`;
+    html += `<div class="habit-row-name" contenteditable="true" data-field="name">${escapeHtml(h.name)}</div>`;
+    days.forEach(d => {
+      const on = !!(h.logs && h.logs[d.date]);
+      const style = on ? `background:${h.color};border-color:${h.color};` : '';
+      html += `<button class="habit-cell ${d.isToday ? 'today' : ''}" style="${style}" data-date="${d.date}"></button>`;
+    });
+    html += `<button class="habit-del" data-action="delete">×</button>`;
+    html += `</div>`;
+  });
+  html += `</div>`;
+  habitGrid.innerHTML = html;
+}
+
+habitInput.addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  const name = habitInput.value.trim();
+  if (!name) return;
+  const habit = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : "h" + Date.now() + Math.random().toString(16).slice(2)),
+    name, color: HABIT_COLORS[habits.length % HABIT_COLORS.length], order: Date.now(), logs: {}
+  };
+  habits.push(habit);
+  await dbPut('habits', habit);
+  habitInput.value = '';
+  renderHabits();
+});
+
+habitGrid.addEventListener('click', async (e) => {
+  const row = e.target.closest('.habit-row');
+  if (!row) return;
+  const habit = habits.find(h => h.id === row.dataset.id);
+  if (!habit) return;
+
+  if (e.target.closest('.habit-cell')){
+    const date = e.target.dataset.date;
+    habit.logs = habit.logs || {};
+    if (habit.logs[date]) delete habit.logs[date]; else habit.logs[date] = true;
+    await dbPut('habits', habit);
+    renderHabits();
+  }
+  if (e.target.closest('[data-action="delete"]')){
+    habits = habits.filter(h => h.id !== habit.id);
+    await dbDelete('habits', habit.id);
+    renderHabits();
+  }
+});
+
+habitGrid.addEventListener('blur', async (e) => {
+  const el = e.target;
+  if (!el.matches('[contenteditable]')) return;
+  const row = el.closest('.habit-row');
+  const habit = habits.find(h => h.id === row.dataset.id);
+  if (!habit) return;
+  const value = el.textContent.trim();
+  habit.name = value || habit.name;
+  el.textContent = habit.name;
+  await dbPut('habits', habit);
+}, true);
+
+habitGrid.addEventListener('keydown', (e) => {
+  if (e.target.matches('[contenteditable]') && e.key === 'Enter'){
+    e.preventDefault();
+    e.target.blur();
+  }
+});
+
+/* ---- to-do list ---- */
+let todos = [];
+const todoList = document.getElementById('todoList');
+const todoInput = document.getElementById('todoInput');
+
+function renderTodos(){
+  const sorted = todos.slice().sort((a,b) => a.order - b.order);
+  todoList.innerHTML = sorted.length ? sorted.map(t => `
+    <div class="todo-row ${t.done ? 'done' : ''}" data-id="${t.id}">
+      <button class="todo-check ${t.done ? 'on' : ''}" data-action="toggle">${t.done ? '✓' : ''}</button>
+      <div class="todo-text" contenteditable="true" data-field="text">${escapeHtml(t.text)}</div>
+      <button class="todo-del" data-action="delete">×</button>
+    </div>
+  `).join('') : `<div class="chill-empty">nothing to do — nice</div>`;
+}
+
+todoInput.addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  const text = todoInput.value.trim();
+  if (!text) return;
+  const todo = { id: (crypto.randomUUID ? crypto.randomUUID() : "t" + Date.now() + Math.random().toString(16).slice(2)), text, done: false, order: Date.now() };
+  todos.push(todo);
+  await dbPut('todos', todo);
+  todoInput.value = '';
+  renderTodos();
+});
+
+todoList.addEventListener('click', async (e) => {
+  const row = e.target.closest('.todo-row');
+  if (!row) return;
+  const todo = todos.find(t => t.id === row.dataset.id);
+  if (!todo) return;
+
+  if (e.target.closest('[data-action="toggle"]')){
+    todo.done = !todo.done;
+    await dbPut('todos', todo);
+    renderTodos();
+  }
+  if (e.target.closest('[data-action="delete"]')){
+    todos = todos.filter(t => t.id !== todo.id);
+    await dbDelete('todos', todo.id);
+    renderTodos();
+  }
+});
+
+todoList.addEventListener('blur', async (e) => {
+  const el = e.target;
+  if (!el.matches('[contenteditable]')) return;
+  const row = el.closest('.todo-row');
+  const todo = todos.find(t => t.id === row.dataset.id);
+  if (!todo) return;
+  const value = el.textContent.trim();
+  if (!value){
+    todos = todos.filter(t => t.id !== todo.id);
+    await dbDelete('todos', todo.id);
+    renderTodos();
+    return;
+  }
+  todo.text = value;
+  await dbPut('todos', todo);
+}, true);
+
+todoList.addEventListener('keydown', (e) => {
+  if (e.target.matches('[contenteditable]') && e.key === 'Enter'){
+    e.preventDefault();
+    e.target.blur();
+  }
+});
+
+/* ---- mood tracker ---- */
+const MOOD_EMOJI = { 1: '😞', 2: '😕', 3: '😐', 4: '🙂', 5: '😄' };
+let moods = {};
+const moodPicker = document.getElementById('moodPicker');
+const moodStrip = document.getElementById('moodStrip');
+
+function renderMood(){
+  const todayStr = new Date().toISOString().slice(0,10);
+  const todayVal = moods[todayStr];
+  moodPicker.innerHTML = [1,2,3,4,5].map(v => `<button class="mood-btn ${v === todayVal ? 'selected' : ''}" data-value="${v}">${MOOD_EMOJI[v]}</button>`).join('');
+
+  const days = last7Days();
+  moodStrip.innerHTML = days.map(d => {
+    const val = moods[d.date];
+    return `<div class="mood-day"><div class="mood-day-emoji">${val ? MOOD_EMOJI[val] : '·'}</div><span>${d.label}</span></div>`;
+  }).join('');
+}
+
+moodPicker.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.mood-btn');
+  if (!btn) return;
+  const value = parseInt(btn.dataset.value, 10);
+  const todayStr = new Date().toISOString().slice(0,10);
+  moods[todayStr] = value;
+  await dbPut('moods', { id: todayStr, value });
+  renderMood();
+});
+
+/* ---- notes ---- */
+const notesArea = document.getElementById('notesArea');
+const notesSaved = document.getElementById('notesSaved');
+let notesTimer = null;
+
+notesArea.addEventListener('input', () => {
+  clearTimeout(notesTimer);
+  notesTimer = setTimeout(async () => {
+    await dbPut('notes', { id: 'main', text: notesArea.value });
+    notesSaved.textContent = 'saved';
+    setTimeout(() => { if (notesSaved.textContent === 'saved') notesSaved.textContent = ''; }, 1500);
+  }, 500);
+});
+
+/* ---- load + open/close ---- */
+async function loadChillData(){
+  try{
+    habits = await dbGetAll('habits');
+    habits.forEach(h => { if (!h.logs) h.logs = {}; });
+    todos = await dbGetAll('todos');
+    const moodRecs = await dbGetAll('moods');
+    moods = {};
+    moodRecs.forEach(r => { moods[r.id] = r.value; });
+    const noteRecs = await dbGetAll('notes');
+    const mainNote = noteRecs.find(r => r.id === 'main');
+    notesArea.value = mainNote ? mainNote.text : '';
+  }catch(e){
+    habits = []; todos = []; moods = {};
+  }
+}
+
+async function showSecretContent(){
   secretGateWrap.style.display = 'none';
   secretContent.style.display = '';
-  renderSecret();
+  if (!chillLoaded){
+    await loadChillData();
+    chillLoaded = true;
+  }
+  renderHabits();
+  renderTodos();
+  renderMood();
 }
 
 secretTrigger.addEventListener('click', () => {
