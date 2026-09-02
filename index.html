@@ -29,6 +29,7 @@
     font-size:clamp(2rem,6vw,3.4rem); font-weight:900; text-transform:uppercase;
     letter-spacing:-0.01em; line-height:1; color:var(--text);
   }
+  .secret-trigger{ cursor:default; }
   .tag{
     margin-top:14px; font-size:.72rem; letter-spacing:.14em; text-transform:uppercase;
     color:var(--text-dim);
@@ -60,7 +61,7 @@
     font-size:.68rem; letter-spacing:.2em; text-transform:uppercase; color:var(--text-dim);
   }
   .dropzone.drag span{ color:var(--text); }
-  #fileInput{ display:none; }
+  input[type=file]{ display:none; }
   .msg{ font-size:.7rem; letter-spacing:.05em; text-transform:uppercase; padding:10px 2px; min-height:1.4em; color:var(--text-dim); }
 
   /* ---- grid ---- */
@@ -118,12 +119,52 @@
     max-width:1180px; margin:50px auto 0; padding:22px 20px 0; border-top:1px solid var(--line);
     color:var(--text-dim); font-size:.68rem; letter-spacing:.03em; line-height:1.7;
   }
+
+  /* ---- gate + secret overlay (shared) ---- */
+  .gate, .overlay{
+    position:fixed; inset:0; background:var(--bg); z-index:1000;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px;
+    padding:20px;
+  }
+  .overlay{ display:none; }
+  .gate-word{
+    font-size:clamp(1.6rem,5vw,2.4rem); font-weight:900; text-transform:uppercase;
+    letter-spacing:-0.01em; color:var(--text);
+  }
+  .code-input{
+    background:transparent; border:none; border-bottom:1px solid var(--line); outline:none;
+    color:var(--text); font-family:inherit; font-size:.85rem; letter-spacing:.3em;
+    text-align:center; text-transform:uppercase; padding:10px 4px; width:200px;
+  }
+  .code-input::placeholder{ color:var(--text-dim); letter-spacing:.3em; }
+  .code-input:focus{ border-bottom-color:var(--text-dim); }
+  @keyframes shake{
+    10%,90%{ transform:translateX(-2px); }
+    20%,80%{ transform:translateX(4px); }
+    30%,50%,70%{ transform:translateX(-6px); }
+    40%,60%{ transform:translateX(6px); }
+  }
+  .shake{ animation:shake .35s; }
+
+  .overlay-close{
+    position:absolute; top:22px; right:26px; background:none; border:none; cursor:pointer;
+    color:var(--text-dim); font-size:1.1rem; font-family:inherit; line-height:1;
+  }
+  .overlay-close:hover{ color:var(--text); }
+  .overlay-body{ width:100%; max-width:1180px; }
 </style>
 </head>
 <body>
 
+<div id="gate" class="gate">
+  <div class="gate-word">HASH PROJECTS</div>
+  <input id="gateInput" class="code-input" type="password" placeholder="[code]" autocomplete="off" autofocus>
+</div>
+
+<div id="app" style="display:none;">
+
 <header>
-  <div class="word">HASH PROJECTS</div>
+  <div class="word">HA<span id="secretTrigger" class="secret-trigger">S</span>H PROJECTS</div>
   <p class="tag">Personal archive</p>
 </header>
 
@@ -150,7 +191,40 @@
   Files are stored locally in this browser — not on a server, not synced elsewhere.
 </footer>
 
+</div>
+
+<div id="secretOverlay" class="overlay">
+  <button id="secretClose" class="overlay-close">×</button>
+
+  <div id="secretGateWrap">
+    <input id="secretInput" class="code-input" type="password" placeholder="[code]" autocomplete="off">
+  </div>
+
+  <div id="secretContent" class="overlay-body" style="display:none;">
+    <div class="toolbar">
+      <div class="search">
+        <input id="secretSearchInput" type="text" placeholder="[z]">
+      </div>
+      <span class="count" id="secretCount">0</span>
+    </div>
+
+    <div class="dropzone" id="secretDropzone">
+      <span>drop</span>
+      <input type="file" id="secretFileInput" accept=".html,.htm" multiple>
+    </div>
+    <div class="msg" id="secretMsg"></div>
+
+    <div class="grid" id="secretGrid"></div>
+  </div>
+</div>
+
 <script>
+/* ============================================================
+   ACCESS — edit these two codes to your own
+   ============================================================ */
+const ACCESS_CODE = "changeme";  // required to view the site at all
+const SECRET_CODE = "shhh";      // required to open the secret compartment
+
 /* ---------- IndexedDB helper ---------- */
 const DB_NAME = "hashProjectsDB";
 const STORE = "files";
@@ -202,6 +276,7 @@ async function dbDelete(id){
 /* ---------- state ---------- */
 let files = [];
 let query = "";
+let secretQuery = "";
 
 const grid = document.getElementById('grid');
 const countEl = document.getElementById('count');
@@ -209,6 +284,13 @@ const msgEl = document.getElementById('msg');
 const dropzone = document.getElementById('dropzone');
 const fileInput = document.getElementById('fileInput');
 const searchInput = document.getElementById('searchInput');
+
+const secretGrid = document.getElementById('secretGrid');
+const secretCountEl = document.getElementById('secretCount');
+const secretMsgEl = document.getElementById('secretMsg');
+const secretDropzone = document.getElementById('secretDropzone');
+const secretFileInput = document.getElementById('secretFileInput');
+const secretSearchInput = document.getElementById('secretSearchInput');
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -228,26 +310,18 @@ function extractTitle(html, fallback){
   return fallback;
 }
 
-function showMsg(text){
-  msgEl.textContent = text;
-  if (text) setTimeout(() => { if (msgEl.textContent === text) msgEl.textContent = ""; }, 4000);
+function showMsg(el, text){
+  el.textContent = text;
+  if (text) setTimeout(() => { if (el.textContent === text) el.textContent = ""; }, 4000);
 }
 
-/* ---------- render ---------- */
-function render(){
-  const q = query.trim().toLowerCase();
-  const list = files
-    .filter(f => !q || (f.title + " " + f.name + " " + (f.description||"")).toLowerCase().includes(q))
-    .sort((a,b) => b.date.localeCompare(a.date));
+function matchQuery(q){
+  return f => !q || (f.title + " " + f.name + " " + (f.description||"")).toLowerCase().includes(q);
+}
+function byDateDesc(a, b){ return b.date.localeCompare(a.date); }
 
-  countEl.textContent = files.length;
-
-  if (!list.length){
-    grid.innerHTML = `<div class="empty">${files.length ? "no results" : "no files yet"}</div>`;
-    return;
-  }
-
-  grid.innerHTML = list.map(f => `
+function cardsHTML(list){
+  return list.map(f => `
     <div class="card" data-id="${f.id}">
       <div class="card-title" contenteditable="true" data-field="title">${escapeHtml(f.title)}</div>
       <div class="card-desc" contenteditable="true" data-field="description" data-placeholder="add description...">${escapeHtml(f.description || "")}</div>
@@ -262,66 +336,90 @@ function render(){
   `).join("");
 }
 
-grid.addEventListener('click', async (e) => {
-  const btn = e.target.closest('button[data-action]');
-  if (!btn) return;
-  const card = e.target.closest('.card');
-  const id = card.dataset.id;
-  const file = files.find(f => f.id === id);
-  if (!file) return;
-  const action = btn.dataset.action;
+function renderInto(gridEl, countEl, list){
+  countEl.textContent = list.length;
+  gridEl.innerHTML = list.length ? cardsHTML(list) : `<div class="empty">no files yet</div>`;
+}
 
-  if (action === 'open'){
-    const blob = new Blob([file.content], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    window.open(url, '_blank');
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
-  }
-  if (action === 'download'){
-    const blob = new Blob([file.content], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = file.name;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 30000);
-  }
-  if (action === 'delete'){
-    if (!confirm('Delete "' + file.title + '"?')) return;
-    await dbDelete(id);
-    files = files.filter(f => f.id !== id);
-    render();
-  }
-});
+/* ---------- render: main ---------- */
+function render(){
+  const q = query.trim().toLowerCase();
+  const list = files.filter(f => !f.secret).filter(matchQuery(q)).sort(byDateDesc);
+  renderInto(grid, countEl, list);
+}
 
-/* ---------- inline rename / description edit ---------- */
-grid.addEventListener('blur', async (e) => {
-  const el = e.target;
-  if (!el.matches('[contenteditable]')) return;
-  const card = el.closest('.card');
-  const id = card.dataset.id;
-  const file = files.find(f => f.id === id);
-  if (!file) return;
-  const field = el.dataset.field;
-  let value = el.textContent.trim();
+/* ---------- render: secret ---------- */
+function renderSecret(){
+  const q = secretQuery.trim().toLowerCase();
+  const list = files.filter(f => f.secret).filter(matchQuery(q)).sort(byDateDesc);
+  renderInto(secretGrid, secretCountEl, list);
+}
 
-  if (field === 'title' && !value){
-    value = file.title; // don't allow empty title
-    el.textContent = value;
-  }
+/* ---------- shared card interactions ---------- */
+function wireGrid(gridEl, afterChange){
+  gridEl.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-action]');
+    if (!btn) return;
+    const card = e.target.closest('.card');
+    const id = card.dataset.id;
+    const file = files.find(f => f.id === id);
+    if (!file) return;
+    const action = btn.dataset.action;
 
-  file[field] = value;
-  await dbPut(file);
-}, true);
+    if (action === 'open'){
+      const blob = new Blob([file.content], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+    if (action === 'download'){
+      const blob = new Blob([file.content], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = file.name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+    }
+    if (action === 'delete'){
+      if (!confirm('Delete "' + file.title + '"?')) return;
+      await dbDelete(id);
+      files = files.filter(f => f.id !== id);
+      afterChange();
+    }
+  });
 
-grid.addEventListener('keydown', (e) => {
-  if (e.target.matches('[contenteditable]') && e.key === 'Enter'){
-    e.preventDefault();
-    e.target.blur();
-  }
-});
+  gridEl.addEventListener('blur', async (e) => {
+    const el = e.target;
+    if (!el.matches('[contenteditable]')) return;
+    const card = el.closest('.card');
+    const id = card.dataset.id;
+    const file = files.find(f => f.id === id);
+    if (!file) return;
+    const field = el.dataset.field;
+    let value = el.textContent.trim();
+
+    if (field === 'title' && !value){
+      value = file.title;
+      el.textContent = value;
+    }
+
+    file[field] = value;
+    await dbPut(file);
+  }, true);
+
+  gridEl.addEventListener('keydown', (e) => {
+    if (e.target.matches('[contenteditable]') && e.key === 'Enter'){
+      e.preventDefault();
+      e.target.blur();
+    }
+  });
+}
+
+wireGrid(grid, render);
+wireGrid(secretGrid, renderSecret);
 
 /* ---------- upload ---------- */
-async function handleFiles(fileList){
+async function handleFiles(fileList, secret, msgElement, afterFn){
   const arr = Array.from(fileList);
   let added = 0, rejected = 0;
 
@@ -336,45 +434,131 @@ async function handleFiles(fileList){
       description: "",
       size: f.size,
       date: new Date().toISOString().slice(0,10),
-      content
+      content,
+      secret: !!secret
     };
     await dbPut(record);
     files.push(record);
     added++;
   }
 
-  render();
-  if (rejected && added) showMsg(added + " file(s) added, " + rejected + " skipped (not .html)");
-  else if (rejected) showMsg(rejected + " file(s) skipped — only .html/.htm accepted");
-  else if (added) showMsg(added + " file(s) added");
+  afterFn();
+  if (rejected && added) showMsg(msgElement, added + " file(s) added, " + rejected + " skipped (not .html)");
+  else if (rejected) showMsg(msgElement, rejected + " file(s) skipped — only .html/.htm accepted");
+  else if (added) showMsg(msgElement, added + " file(s) added");
 }
 
-dropzone.addEventListener('click', () => fileInput.click());
-fileInput.addEventListener('change', (e) => { handleFiles(e.target.files); fileInput.value = ""; });
+function wireDropzone(zoneEl, inputEl, secret, msgElement, afterFn){
+  zoneEl.addEventListener('click', () => inputEl.click());
+  inputEl.addEventListener('change', (e) => { handleFiles(e.target.files, secret, msgElement, afterFn); inputEl.value = ""; });
 
-['dragenter','dragover'].forEach(evt => dropzone.addEventListener(evt, (e) => {
-  e.preventDefault(); e.stopPropagation(); dropzone.classList.add('drag');
-}));
-['dragleave','drop'].forEach(evt => dropzone.addEventListener(evt, (e) => {
-  e.preventDefault(); e.stopPropagation(); dropzone.classList.remove('drag');
-}));
-dropzone.addEventListener('drop', (e) => {
-  if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
-});
+  ['dragenter','dragover'].forEach(evt => zoneEl.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation(); zoneEl.classList.add('drag');
+  }));
+  ['dragleave','drop'].forEach(evt => zoneEl.addEventListener(evt, (e) => {
+    e.preventDefault(); e.stopPropagation(); zoneEl.classList.remove('drag');
+  }));
+  zoneEl.addEventListener('drop', (e) => {
+    if (e.dataTransfer.files && e.dataTransfer.files.length) handleFiles(e.dataTransfer.files, secret, msgElement, afterFn);
+  });
+}
+
+wireDropzone(dropzone, fileInput, false, msgEl, render);
+wireDropzone(secretDropzone, secretFileInput, true, secretMsgEl, renderSecret);
 
 /* ---------- search ---------- */
 searchInput.addEventListener('input', (e) => { query = e.target.value; render(); });
+secretSearchInput.addEventListener('input', (e) => { secretQuery = e.target.value; renderSecret(); });
 
-/* ---------- init ---------- */
-(async function init(){
+/* ============================================================
+   GATE — site-wide access code
+   ============================================================ */
+const gate = document.getElementById('gate');
+const gateInput = document.getElementById('gateInput');
+const app = document.getElementById('app');
+
+async function initApp(){
   try{
     files = await dbGetAll();
-    files.forEach(f => { if (f.description === undefined) f.description = ""; });
+    files.forEach(f => {
+      if (f.description === undefined) f.description = "";
+      if (f.secret === undefined) f.secret = false;
+    });
   }catch(e){
     files = [];
   }
   render();
-})();
+}
+
+function unlockSite(){
+  gate.style.display = 'none';
+  app.style.display = '';
+  try{ sessionStorage.setItem('hp_unlocked', '1'); }catch(e){}
+  initApp();
+}
+
+function wrongCode(inputEl){
+  inputEl.value = '';
+  inputEl.classList.add('shake');
+  setTimeout(() => inputEl.classList.remove('shake'), 350);
+}
+
+let alreadyUnlocked = false;
+try{ alreadyUnlocked = sessionStorage.getItem('hp_unlocked') === '1'; }catch(e){}
+
+if (alreadyUnlocked){
+  unlockSite();
+} else {
+  gateInput.focus();
+}
+
+gateInput.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  if (gateInput.value === ACCESS_CODE) unlockSite();
+  else wrongCode(gateInput);
+});
+
+/* ============================================================
+   SECRET COMPARTMENT — triggered by the hidden "S" in the logo
+   ============================================================ */
+const secretTrigger = document.getElementById('secretTrigger');
+const secretOverlay = document.getElementById('secretOverlay');
+const secretClose = document.getElementById('secretClose');
+const secretGateWrap = document.getElementById('secretGateWrap');
+const secretContent = document.getElementById('secretContent');
+const secretInput = document.getElementById('secretInput');
+
+function showSecretContent(){
+  secretGateWrap.style.display = 'none';
+  secretContent.style.display = '';
+  renderSecret();
+}
+
+secretTrigger.addEventListener('click', () => {
+  secretOverlay.style.display = 'flex';
+  let secretUnlocked = false;
+  try{ secretUnlocked = sessionStorage.getItem('hp_secret_unlocked') === '1'; }catch(e){}
+  if (secretUnlocked){
+    showSecretContent();
+  } else {
+    secretGateWrap.style.display = '';
+    secretContent.style.display = 'none';
+    secretInput.value = '';
+    secretInput.focus();
+  }
+});
+
+secretClose.addEventListener('click', () => { secretOverlay.style.display = 'none'; });
+
+secretInput.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter') return;
+  if (secretInput.value === SECRET_CODE){
+    try{ sessionStorage.setItem('hp_secret_unlocked', '1'); }catch(err){}
+    showSecretContent();
+  } else {
+    wrongCode(secretInput);
+  }
+});
 </script>
 
 </body>
