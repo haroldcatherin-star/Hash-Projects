@@ -218,6 +218,127 @@
     #notesArea:focus { border-color:#4a4e59; box-shadow:0 0 0 3px rgba(216,255,85,.06); }
     .notes-stats { grid-template-columns:repeat(2,1fr) !important; }
 
+    /* ===================== MODULE : SÉANCES (Planner) ===================== */
+    #module-sessions {
+        --line: var(--border);
+        --txt: var(--text);
+        --lime: var(--accent);
+        --lime-dim: rgba(216,255,85,.12);
+        --amber: var(--orange);
+        --violet: #a78bfa;
+        --rose: var(--danger);
+        --radius: 14px;
+        font-size:15px; line-height:1.5;
+    }
+    #module-sessions button { font:inherit; cursor:pointer; border:none; background:none; color:inherit; }
+    #module-sessions input, #module-sessions select, #module-sessions textarea { font:inherit; color:inherit; }
+
+    #module-sessions .tabs { display:flex; gap:6px; background:var(--panel); border:1px solid var(--line); padding:5px; border-radius:12px; margin-bottom:18px; overflow-x:auto; }
+    #module-sessions .tabs button { padding:9px 16px; border-radius:9px; font-size:14px; font-weight:600; color:var(--muted); white-space:nowrap; transition:.15s; }
+    #module-sessions .tabs button.on { background:var(--lime); color:#11140b; }
+    #module-sessions .tabs button:not(.on):hover { color:var(--txt); background:var(--panel2); }
+    #module-sessions .tabs .count { font-size:11px; opacity:.7; margin-left:5px; }
+
+    #module-sessions .ghost { border:1px solid var(--line); background:var(--panel); padding:8px 12px; border-radius:10px; font-size:13px; color:var(--muted); transition:.15s; }
+    #module-sessions .ghost:hover { color:var(--txt); border-color:#39441f; }
+
+    #module-sessions .pl-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:18px; }
+    #module-sessions .pl-stat { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; }
+    #module-sessions .pl-stat .k { font-size:11px; text-transform:uppercase; letter-spacing:.9px; color:var(--muted); font-weight:600; }
+    #module-sessions .pl-stat .v { font-size:26px; font-weight:700; letter-spacing:-1px; margin-top:4px; }
+    #module-sessions .pl-stat .v small { font-size:13px; color:var(--muted); font-weight:600; letter-spacing:0; margin-left:3px; }
+    #module-sessions .bar { height:5px; border-radius:99px; background:var(--panel2); margin-top:10px; overflow:hidden; }
+    #module-sessions .bar i { display:block; height:100%; background:var(--lime); border-radius:99px; transition:width .3s; }
+
+    #module-sessions .weeknav { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+    #module-sessions .weeknav .arrow { width:34px; height:34px; border-radius:10px; border:1px solid var(--line); background:var(--panel); display:grid; place-items:center; font-size:16px; color:var(--muted); }
+    #module-sessions .weeknav .arrow:hover { color:var(--lime); border-color:#39441f; }
+    #module-sessions .weeknav .label { font-weight:700; font-size:15px; }
+    #module-sessions .weeknav .sub { color:var(--muted); font-size:13px; }
+    #module-sessions .weeknav .spacer { flex:1; }
+
+    #module-sessions .week { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:9px; }
+    #module-sessions .day { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:10px; min-height:150px; display:flex; flex-direction:column; }
+    #module-sessions .day.today { border-color:var(--lime); box-shadow:0 0 0 1px rgba(216,255,85,.25); }
+    #module-sessions .day.past { opacity:.72; }
+    #module-sessions .day h3 { margin:0 0 2px; font-size:12px; text-transform:uppercase; letter-spacing:.9px; color:var(--muted); font-weight:700; }
+    #module-sessions .day .num { font-size:19px; font-weight:700; letter-spacing:-.5px; margin-bottom:9px; }
+    #module-sessions .day.today .num { color:var(--lime); }
+    #module-sessions .day .add { margin-top:auto; border:1px dashed var(--line); border-radius:9px; padding:7px; font-size:12px; color:var(--muted); text-align:center; transition:.15s; width:100%; }
+    #module-sessions .day .add:hover { border-color:var(--lime); color:var(--lime); background:var(--lime-dim); }
+    #module-sessions .day .dayh { font-size:11px; color:var(--muted); margin-bottom:8px; font-weight:600; }
+
+    #module-sessions .sess { background:var(--panel2); border:1px solid var(--line); border-left:3px solid var(--c,var(--lime)); border-radius:10px; padding:8px 9px; margin-bottom:7px; position:relative; }
+    #module-sessions .sess.done { opacity:.5; }
+    #module-sessions .sess.done .name { text-decoration:line-through; }
+    #module-sessions .sess .name { font-size:13px; font-weight:600; line-height:1.3; word-break:break-word; padding-right:16px; }
+    #module-sessions .sess .meta { font-size:11px; color:var(--muted); margin-top:3px; display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    #module-sessions .sess .tag { color:var(--c,var(--lime)); font-weight:600; }
+    #module-sessions .sess .acts { display:flex; gap:4px; margin-top:7px; }
+    #module-sessions .sess .acts button { flex:1; border:1px solid var(--line); border-radius:7px; padding:3px 0; font-size:12px; color:var(--muted); transition:.15s; line-height:1.4; }
+    #module-sessions .sess .acts .ok:hover { background:var(--lime); color:#11140b; border-color:var(--lime); }
+    #module-sessions .sess .acts .ed:hover { color:var(--txt); border-color:#39441f; }
+    #module-sessions .sess .acts .rm:hover { color:var(--rose); border-color:var(--rose); }
+
+    #module-sessions .pl-panel { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:16px; }
+    #module-sessions .pl-panel h2 { margin:0 0 4px; font-size:16px; letter-spacing:-.3px; }
+    #module-sessions .pl-panel .hint { color:var(--muted); font-size:13px; margin:0 0 14px; }
+    #module-sessions .row { display:flex; align-items:center; gap:12px; padding:11px 12px; border:1px solid var(--line); border-left:3px solid var(--c,var(--lime)); border-radius:11px; background:var(--panel2); margin-bottom:8px; }
+    #module-sessions .row .tick { width:24px; height:24px; flex:0 0 24px; border-radius:7px; border:1.5px solid var(--line); display:grid; place-items:center; font-size:13px; color:transparent; transition:.15s; }
+    #module-sessions .row .tick:hover { border-color:var(--lime); color:var(--lime); background:var(--lime-dim); }
+    #module-sessions .row .body { flex:1; min-width:0; }
+    #module-sessions .row .body .t { font-weight:600; font-size:14px; word-break:break-word; }
+    #module-sessions .row .body .s { font-size:12px; color:var(--muted); margin-top:2px; display:flex; gap:8px; flex-wrap:wrap; }
+    #module-sessions .row .mini { border:1px solid var(--line); border-radius:8px; padding:4px 9px; font-size:12px; color:var(--muted); }
+    #module-sessions .row .mini:hover { color:var(--txt); border-color:#39441f; }
+    #module-sessions .row .mini.rm:hover { color:var(--rose); border-color:var(--rose); }
+    #module-sessions .row.hist { border-left-color:var(--c,var(--lime)); opacity:.9; }
+
+    #module-sessions .quick { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+    #module-sessions .quick input[type=text] { flex:1; min-width:160px; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+    #module-sessions .quick input[type=text]:focus { outline:none; border-color:var(--lime); }
+    #module-sessions .quick select, #module-sessions .quick input[type=number] { background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:10px 12px; }
+    #module-sessions .quick .go { background:var(--lime); color:#11140b; font-weight:700; padding:10px 18px; border-radius:10px; }
+
+    #module-sessions .pl-empty { text-align:center; color:var(--muted); font-size:13px; padding:26px 10px; border:1px dashed var(--line); border-radius:12px; }
+
+    #module-sessions .histgroup { margin-bottom:18px; }
+    #module-sessions .histgroup .gh { display:flex; align-items:baseline; gap:9px; margin-bottom:8px; }
+    #module-sessions .histgroup .gh b { font-size:14px; }
+    #module-sessions .histgroup .gh span { font-size:12px; color:var(--muted); }
+
+    #module-sessions .pl-chart { display:flex; align-items:flex-end; gap:7px; height:120px; margin-top:6px; }
+    #module-sessions .pl-chart .col { flex:1; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:6px; height:100%; }
+    #module-sessions .pl-chart .col .b { width:100%; background:var(--lime-dim); border:1px solid rgba(216,255,85,.3); border-radius:6px 6px 3px 3px; min-height:3px; transition:height .3s; }
+    #module-sessions .pl-chart .col .b.f { background:var(--lime); border-color:var(--lime); }
+    #module-sessions .pl-chart .col .l { font-size:10px; color:var(--muted); font-weight:600; }
+    #module-sessions .pl-chart .col .n { font-size:10px; color:var(--muted); }
+
+    #module-sessions .overlay { position:fixed; inset:0; background:rgba(0,0,0,.72); backdrop-filter:blur(3px); display:grid; place-items:center; padding:16px; z-index:50; }
+    #module-sessions .overlay .pl-modal { background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:20px; width:100%; max-width:420px; max-height:90vh; overflow:auto; }
+    #module-sessions .overlay .pl-modal h2 { margin:0 0 16px; font-size:17px; letter-spacing:-.3px; }
+    #module-sessions .f { margin-bottom:13px; }
+    #module-sessions .f label { display:block; font-size:11px; text-transform:uppercase; letter-spacing:.9px; color:var(--muted); font-weight:700; margin-bottom:6px; }
+    #module-sessions .f input, #module-sessions .f select { width:100%; background:var(--panel2); border:1px solid var(--line); border-radius:10px; padding:11px 12px; }
+    #module-sessions .f input:focus, #module-sessions .f select:focus { outline:none; border-color:var(--lime); }
+    #module-sessions .f2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    #module-sessions .types { display:flex; gap:7px; flex-wrap:wrap; }
+    #module-sessions .types button { border:1px solid var(--line); border-radius:9px; padding:7px 12px; font-size:13px; color:var(--muted); font-weight:600; }
+    #module-sessions .types button.on { background:var(--c); border-color:var(--c); color:#11140b; }
+    #module-sessions .mbtns { display:flex; gap:9px; margin-top:18px; }
+    #module-sessions .mbtns .save { flex:1; background:var(--lime); color:#11140b; font-weight:700; padding:12px; border-radius:11px; }
+    #module-sessions .mbtns .cancel { padding:12px 18px; border:1px solid var(--line); border-radius:11px; color:var(--muted); }
+    #module-sessions .mbtns .cancel:hover { color:var(--txt); }
+
+    @media (max-width:900px) {
+        #module-sessions .week { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        #module-sessions .day { min-height:0; }
+    }
+    @media (max-width:520px) {
+        #module-sessions .week { grid-template-columns:1fr; }
+        #module-sessions .f2 { grid-template-columns:1fr; }
+    }
+
     @media(max-width:800px) {
         .layout { grid-template-columns:1fr; }
         header { align-items:flex-start; flex-direction:column; }
@@ -254,6 +375,7 @@
         <button class="module-btn active" data-module="tasks">Tâches</button>
         <button class="module-btn" data-module="habits">Habitudes</button>
         <button class="module-btn" data-module="notes">Notes</button>
+        <button class="module-btn" data-module="sessions">Séances</button>
     </nav>
 
     <!-- ===================== MODULE : TÂCHES ===================== -->
@@ -391,8 +513,94 @@
         </aside>
     </div>
 
+    <!-- ===================== MODULE : SÉANCES ===================== -->
+    <div id="module-sessions" hidden>
+        <div class="tabs">
+            <button data-pltab="week" class="on">Semaine</button>
+            <button data-pltab="todo">À faire <span class="count" id="plCTodo"></span></button>
+            <button data-pltab="done">Faites <span class="count" id="plCDone"></span></button>
+        </div>
+
+        <!-- ============ SEMAINE ============ -->
+        <section id="plVWeek">
+            <div class="pl-stats">
+                <div class="pl-stat"><div class="k">Planifié</div><div class="v" id="plSPlan">0<small>h</small></div></div>
+                <div class="pl-stat"><div class="k">Fait</div><div class="v" id="plSDone">0<small>h</small></div><div class="bar"><i id="plSBar" style="width:0%"></i></div></div>
+                <div class="pl-stat"><div class="k">Séances</div><div class="v" id="plSCount">0</div></div>
+                <div class="pl-stat"><div class="k">Top matière</div><div class="v" id="plSTop" style="font-size:18px">—</div></div>
+            </div>
+
+            <div class="weeknav">
+                <button class="arrow" id="plPrevW">‹</button>
+                <button class="arrow" id="plNextW">›</button>
+                <div>
+                    <div class="label" id="plWLabel"></div>
+                    <div class="sub" id="plWSub"></div>
+                </div>
+                <div class="spacer"></div>
+                <button class="ghost" id="plTodayBtn">Aujourd'hui</button>
+            </div>
+
+            <div class="week" id="plWeekGrid"></div>
+        </section>
+
+        <!-- ============ TO-DO ============ -->
+        <section id="plVTodo" hidden>
+            <div class="pl-panel">
+                <h2>To-do séances</h2>
+                <p class="hint">Séances à caser. Coche pour valider — elle part direct dans « Faites ».</p>
+                <form class="quick" id="plQuickForm">
+                    <input type="text" id="plQName" placeholder="Matière / sujet…" required>
+                    <select id="plQType"></select>
+                    <input type="number" id="plQDur" value="60" min="5" step="5" style="width:90px" title="durée en minutes">
+                    <button class="go" type="submit">Ajouter</button>
+                </form>
+                <div id="plTodoList"></div>
+            </div>
+        </section>
+
+        <!-- ============ FAITES ============ -->
+        <section id="plVDone" hidden>
+            <div class="pl-stats">
+                <div class="pl-stat"><div class="k">Total fait</div><div class="v" id="plDTotal">0<small>h</small></div></div>
+                <div class="pl-stat"><div class="k">Cette semaine</div><div class="v" id="plDWeek">0<small>h</small></div></div>
+                <div class="pl-stat"><div class="k">Séances faites</div><div class="v" id="plDCount">0</div></div>
+                <div class="pl-stat"><div class="k">Moy. / semaine</div><div class="v" id="plDAvg">0<small>h</small></div></div>
+            </div>
+            <div class="pl-panel" style="margin-bottom:14px">
+                <h2>8 dernières semaines</h2>
+                <p class="hint">Heures de travail validées par semaine.</p>
+                <div class="pl-chart" id="plChart"></div>
+            </div>
+            <div class="pl-panel">
+                <h2>Historique</h2>
+                <p class="hint">Tout ce qui a été validé, du plus récent au plus ancien.</p>
+                <div id="plDoneList"></div>
+            </div>
+        </section>
+
+        <div class="overlay" id="plOverlay" hidden>
+            <div class="pl-modal">
+                <h2 id="plMTitle">Nouvelle séance</h2>
+                <form id="plMForm">
+                    <div class="f"><label>Matière / sujet</label><input type="text" id="plMName" required placeholder="Analyse — TD chapitre 3"></div>
+                    <div class="f"><label>Type</label><div class="types" id="plMTypes"></div></div>
+                    <div class="f f2">
+                        <div><label>Jour</label><input type="date" id="plMDate"></div>
+                        <div><label>Heure</label><input type="time" id="plMTime"></div>
+                    </div>
+                    <div class="f"><label>Durée (minutes)</label><input type="number" id="plMDur" min="5" step="5" value="60" required></div>
+                    <div class="mbtns">
+                        <button class="save" type="submit">Enregistrer</button>
+                        <button class="cancel" type="button" id="plMCancel">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <div class="panel data-panel">
-        <p>Toutes tes données (tâches, habitudes et notes) sont stockées localement dans ce navigateur. Exporte une sauvegarde régulièrement si tu changes d'appareil.</p>
+        <p>Toutes tes données (tâches, habitudes, notes et séances) sont stockées localement dans ce navigateur. Exporte une sauvegarde régulièrement si tu changes d'appareil.</p>
         <div class="data-actions">
             <button onclick="exportData()">Exporter</button>
             <button onclick="document.getElementById('file-import').click()">Importer</button>
@@ -874,12 +1082,14 @@ if (localStorage.getItem(STORAGE_UNLOCKED) === "1") {
 const MODULE_META = {
     tasks: { title:"Mes tâches.", eyebrow:"HASHPROJECTS / TÂCHES" },
     habits: { title:"Mes habitudes.", eyebrow:"HASHPROJECTS / HABITUDES" },
-    notes: { title:"Mes notes.", eyebrow:"HASHPROJECTS / NOTES" }
+    notes: { title:"Mes notes.", eyebrow:"HASHPROJECTS / NOTES" },
+    sessions: { title:"Mes séances.", eyebrow:"HASHPROJECTS / SÉANCES" }
 };
 function switchModule(name){
     document.getElementById("module-tasks").hidden = name !== "tasks";
     document.getElementById("module-habits").hidden = name !== "habits";
     document.getElementById("module-notes").hidden = name !== "notes";
+    document.getElementById("module-sessions").hidden = name !== "sessions";
     document.querySelectorAll(".module-btn").forEach(b => b.classList.toggle("active", b.dataset.module === name));
     document.getElementById("page-title").textContent = MODULE_META[name].title;
     document.getElementById("eyebrow").textContent = MODULE_META[name].eyebrow;
@@ -893,7 +1103,8 @@ document.querySelectorAll(".module-btn").forEach(b => b.addEventListener("click"
    ======================================================================== */
 function exportData(){
     try {
-        const payload = { exportedAt: new Date().toISOString(), tasks, history, habits: habitState, notes: notesState };
+        const plannerData = window.plannerExportState ? window.plannerExportState() : { sessions: [] };
+        const payload = { exportedAt: new Date().toISOString(), tasks, history, habits: habitState, notes: notesState, planner: plannerData };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -917,11 +1128,13 @@ document.getElementById("file-import").addEventListener("change", e => {
             const okTasks = Array.isArray(parsed.tasks);
             const okHabits = parsed.habits && Array.isArray(parsed.habits.habits) && parsed.habits.logs;
             const okNotes = parsed.notes && typeof parsed.notes.text === "string";
-            if (!okTasks && !okHabits && !okNotes) throw new Error("format invalide");
-            if (confirm("Remplacer toutes les données actuelles (tâches, habitudes et notes) par celles du fichier importé ?")) {
+            const okPlanner = parsed.planner && Array.isArray(parsed.planner.sessions);
+            if (!okTasks && !okHabits && !okNotes && !okPlanner) throw new Error("format invalide");
+            if (confirm("Remplacer toutes les données actuelles (tâches, habitudes, notes et séances) par celles du fichier importé ?")) {
                 if (okTasks) { tasks = parsed.tasks; history = Array.isArray(parsed.history) ? parsed.history : []; saveTasks(); }
                 if (okHabits) { habitState = parsed.habits; saveHabits(); }
                 if (okNotes) { notesState = parsed.notes; saveNotes(); }
+                if (okPlanner && window.plannerImportState) window.plannerImportState(parsed.planner);
                 renderTasksModule();
                 renderHabitsModule();
                 renderNotesModule();
@@ -942,6 +1155,345 @@ document.getElementById("date").textContent =
     new Date().toLocaleDateString("fr-FR", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
 
 renderTasksModule();
+</script>
+
+<script>
+/* ============================================================================
+   MODULE : SÉANCES — planificateur (adapté de "Planner — Séances")
+   Entièrement encapsulé : ne touche à aucune variable globale du script
+   principal, à l'exception des deux hooks exposés en bas (export/import).
+   ============================================================================ */
+(function(){
+"use strict";
+
+var TYPES = [
+  {id:"cours",    label:"Cours",    c:"#65a8ff"},
+  {id:"td",       label:"TD / TP",  c:"#ffb454"},
+  {id:"revision", label:"Révision", c:"#d8ff55"},
+  {id:"projet",   label:"Projet",   c:"#a78bfa"},
+  {id:"autre",    label:"Autre",    c:"#8e929c"}
+];
+function typeOf(id){ for(var i=0;i<TYPES.length;i++) if(TYPES[i].id===id) return TYPES[i]; return TYPES[4]; }
+
+var KEY="hashprojects_planner_v1";
+var state={ sessions:[] };
+var view="week";
+var anchor=new Date();
+var editId=null;
+var modalType="revision";
+
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+function load(){
+  try{
+    var raw=localStorage.getItem(KEY);
+    if(raw){ var d=JSON.parse(raw); if(d && d.sessions) state.sessions=d.sessions; }
+  }catch(e){}
+}
+
+function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function parseYmd(s){ var p=s.split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+function mondayOf(d){
+  var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  var day=(x.getDay()+6)%7;
+  x.setDate(x.getDate()-day);
+  return x;
+}
+function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function isoWeek(d){
+  var t=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  t.setDate(t.getDate()+3-((t.getDay()+6)%7));
+  var first=new Date(t.getFullYear(),0,4);
+  return 1+Math.round(((t-first)/86400000-3+((first.getDay()+6)%7))/7);
+}
+var DAYS=["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
+var MONTHS=["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+function longDate(d){ return DAYS[(d.getDay()+6)%7]+" "+d.getDate()+" "+MONTHS[d.getMonth()]; }
+function hrs(min){ var h=min/60; return (Math.round(h*10)/10).toString().replace(".",","); }
+function durLabel(min){
+  var h=Math.floor(min/60), m=min%60;
+  if(h && m) return h+"h"+String(m).padStart(2,"0");
+  if(h) return h+"h";
+  return m+" min";
+}
+
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function byId(id){ return document.getElementById(id); }
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+function find(id){ for(var i=0;i<state.sessions.length;i++) if(state.sessions[i].id===id) return state.sessions[i]; return null; }
+
+function complete(id){
+  var s=find(id); if(!s) return;
+  s.status="done";
+  s.doneAt=ymd(new Date());
+  if(!s.date) s.date=s.doneAt;
+  save(); render();
+  if(window.showToast) window.showToast("Séance validée");
+}
+function uncomplete(id){
+  var s=find(id); if(!s) return;
+  s.status = s.time ? "planned" : "todo";
+  s.doneAt=null;
+  save(); render();
+}
+function remove(id){
+  state.sessions=state.sessions.filter(function(s){ return s.id!==id; });
+  save(); render();
+}
+
+function openModal(opts){
+  opts=opts||{};
+  editId=opts.id||null;
+  var s=editId?find(editId):null;
+  byId("plMTitle").textContent = s ? "Modifier la séance" : "Nouvelle séance";
+  byId("plMName").value = s ? s.name : "";
+  byId("plMDate").value = s ? (s.date||"") : (opts.date||ymd(new Date()));
+  byId("plMTime").value = s ? (s.time||"") : (opts.time||"");
+  byId("plMDur").value  = s ? s.duration : 60;
+  modalType = s ? s.type : (opts.type||"revision");
+  renderTypeBtns();
+  byId("plOverlay").hidden=false;
+  setTimeout(function(){ byId("plMName").focus(); },30);
+}
+function closeModal(){ byId("plOverlay").hidden=true; editId=null; }
+
+function renderTypeBtns(){
+  var box=byId("plMTypes"); box.innerHTML="";
+  TYPES.forEach(function(t){
+    var b=document.createElement("button");
+    b.type="button"; b.textContent=t.label;
+    b.style.setProperty("--c",t.c);
+    if(t.id===modalType) b.className="on";
+    b.onclick=function(){ modalType=t.id; renderTypeBtns(); };
+    box.appendChild(b);
+  });
+}
+
+byId("plMForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var name=byId("plMName").value.trim();
+  if(!name) return;
+  var date=byId("plMDate").value||null;
+  var time=byId("plMTime").value||null;
+  var dur=parseInt(byId("plMDur").value,10)||60;
+  if(editId){
+    var s=find(editId);
+    s.name=name; s.type=modalType; s.date=date; s.time=time; s.duration=dur;
+    if(s.status!=="done") s.status = date ? "planned" : "todo";
+  }else{
+    state.sessions.push({
+      id:uid(), name:name, type:modalType, date:date, time:time,
+      duration:dur, status: date?"planned":"todo", doneAt:null, created:Date.now()
+    });
+  }
+  save(); closeModal(); render();
+});
+byId("plMCancel").onclick=closeModal;
+byId("plOverlay").addEventListener("click",function(e){ if(e.target===this) closeModal(); });
+document.addEventListener("keydown",function(e){ if(e.key==="Escape" && !byId("plOverlay").hidden) closeModal(); });
+
+function sessionCard(s){
+  var t=typeOf(s.type);
+  var el=document.createElement("div");
+  el.className="sess"+(s.status==="done"?" done":"");
+  el.style.setProperty("--c",t.c);
+  var meta = (s.time?esc(s.time)+" · ":"") + durLabel(s.duration);
+  el.innerHTML =
+    '<div class="name">'+esc(s.name)+'</div>'+
+    '<div class="meta"><span class="tag">'+t.label+'</span><span>'+meta+'</span></div>'+
+    '<div class="acts">'+
+      '<button class="ok" title="Valider">'+(s.status==="done"?"↺":"✓")+'</button>'+
+      '<button class="ed" title="Modifier">✎</button>'+
+      '<button class="rm" title="Supprimer">✕</button>'+
+    '</div>';
+  var b=el.querySelectorAll("button");
+  b[0].onclick=function(){ s.status==="done"?uncomplete(s.id):complete(s.id); };
+  b[1].onclick=function(){ openModal({id:s.id}); };
+  b[2].onclick=function(){ remove(s.id); };
+  return el;
+}
+
+function renderWeek(){
+  var mon=mondayOf(anchor);
+  var sun=addDays(mon,6);
+  byId("plWLabel").textContent="Semaine "+isoWeek(mon);
+  byId("plWSub").textContent=mon.getDate()+" "+MONTHS[mon.getMonth()]+" – "+sun.getDate()+" "+MONTHS[sun.getMonth()]+" "+sun.getFullYear();
+
+  var grid=byId("plWeekGrid"); grid.innerHTML="";
+  var todayStr=ymd(new Date());
+  var planned=0, done=0, count=0, bySubject={};
+
+  for(var i=0;i<7;i++){
+    var d=addDays(mon,i), ds=ymd(d);
+    var col=document.createElement("div");
+    col.className="day"+(ds===todayStr?" today":"")+(ds<todayStr?" past":"");
+    var list=state.sessions.filter(function(s){ return s.date===ds && s.status!=="todo"; })
+      .sort(function(a,b){ return (a.time||"99:99").localeCompare(b.time||"99:99"); });
+
+    var dayMin=0;
+    list.forEach(function(s){
+      dayMin+=s.duration; planned+=s.duration; count++;
+      if(s.status==="done") done+=s.duration;
+      bySubject[s.name]=(bySubject[s.name]||0)+s.duration;
+    });
+
+    col.innerHTML='<h3>'+DAYS[i]+'</h3><div class="num">'+d.getDate()+'</div>'+
+      (dayMin?'<div class="dayh">'+hrs(dayMin)+' h planifiées</div>':'');
+    list.forEach(function(s){ col.appendChild(sessionCard(s)); });
+
+    var add=document.createElement("button");
+    add.className="add"; add.textContent="+ séance";
+    (function(ds){ add.onclick=function(){ openModal({date:ds}); }; })(ds);
+    col.appendChild(add);
+    grid.appendChild(col);
+  }
+
+  byId("plSPlan").innerHTML=hrs(planned)+'<small>h</small>';
+  byId("plSDone").innerHTML=hrs(done)+'<small>h</small>';
+  byId("plSBar").style.width=(planned?Math.min(100,done/planned*100):0)+"%";
+  byId("plSCount").textContent=count;
+  var top="—",max=0;
+  for(var k in bySubject){ if(bySubject[k]>max){ max=bySubject[k]; top=k; } }
+  byId("plSTop").textContent = top.length>18 ? top.slice(0,17)+"…" : top;
+}
+
+function renderTodo(){
+  var list=state.sessions.filter(function(s){ return s.status==="todo"; })
+    .sort(function(a,b){ return a.created-b.created; });
+  var box=byId("plTodoList"); box.innerHTML="";
+  if(!list.length){ box.innerHTML='<div class="pl-empty">Rien à faire pour l\'instant. Ajoute une séance ci-dessus.</div>'; return; }
+  list.forEach(function(s){
+    var t=typeOf(s.type);
+    var row=document.createElement("div");
+    row.className="row"; row.style.setProperty("--c",t.c);
+    row.innerHTML=
+      '<button class="tick" title="Valider">✓</button>'+
+      '<div class="body"><div class="t">'+esc(s.name)+'</div>'+
+      '<div class="s"><span style="color:'+t.c+'">'+t.label+'</span><span>'+durLabel(s.duration)+'</span></div></div>'+
+      '<button class="mini pl">Planifier</button>'+
+      '<button class="mini rm">✕</button>';
+    row.querySelector(".tick").onclick=function(){ complete(s.id); };
+    row.querySelector(".pl").onclick=function(){ openModal({id:s.id, date:ymd(new Date())}); };
+    row.querySelector(".rm").onclick=function(){ remove(s.id); };
+    box.appendChild(row);
+  });
+}
+
+byId("plQuickForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var name=byId("plQName").value.trim(); if(!name) return;
+  state.sessions.push({
+    id:uid(), name:name, type:byId("plQType").value, date:null, time:null,
+    duration:parseInt(byId("plQDur").value,10)||60, status:"todo", doneAt:null, created:Date.now()
+  });
+  byId("plQName").value="";
+  save(); render(); byId("plQName").focus();
+});
+
+function renderDone(){
+  var list=state.sessions.filter(function(s){ return s.status==="done"; })
+    .sort(function(a,b){ return (b.doneAt||"").localeCompare(a.doneAt||"") || b.created-a.created; });
+
+  var total=0, weekMin=0, mon=ymd(mondayOf(new Date())), sun=ymd(addDays(mondayOf(new Date()),6));
+  var weeks={};
+  list.forEach(function(s){
+    total+=s.duration;
+    var d=s.doneAt||s.date;
+    if(d>=mon && d<=sun) weekMin+=s.duration;
+    if(d){ var wk=ymd(mondayOf(parseYmd(d))); weeks[wk]=(weeks[wk]||0)+s.duration; }
+  });
+  byId("plDTotal").innerHTML=hrs(total)+'<small>h</small>';
+  byId("plDWeek").innerHTML=hrs(weekMin)+'<small>h</small>';
+  byId("plDCount").textContent=list.length;
+  var nw=Object.keys(weeks).length;
+  byId("plDAvg").innerHTML=hrs(nw?total/nw:0)+'<small>h</small>';
+
+  var chart=byId("plChart"); chart.innerHTML="";
+  var base=mondayOf(new Date()), maxv=1;
+  var vals=[];
+  for(var i=7;i>=0;i--){
+    var wkStart=addDays(base,-7*i), key=ymd(wkStart);
+    var v=weeks[key]||0; if(v>maxv) maxv=v;
+    vals.push({k:key,v:v,label:"S"+isoWeek(wkStart)});
+  }
+  vals.forEach(function(o,idx){
+    var col=document.createElement("div"); col.className="col";
+    var h=Math.max(3, o.v/maxv*88);
+    col.innerHTML='<div class="n">'+(o.v?hrs(o.v):"")+'</div>'+
+      '<div class="b'+(idx===vals.length-1?" f":"")+'" style="height:'+h+'%"></div>'+
+      '<div class="l">'+o.label+'</div>';
+    chart.appendChild(col);
+  });
+
+  var box=byId("plDoneList"); box.innerHTML="";
+  if(!list.length){ box.innerHTML='<div class="pl-empty">Aucune séance validée pour le moment.</div>'; return; }
+  var groups={}, order=[];
+  list.forEach(function(s){
+    var d=s.doneAt||s.date||"?";
+    if(!groups[d]){ groups[d]=[]; order.push(d); }
+    groups[d].push(s);
+  });
+  order.forEach(function(d){
+    var g=document.createElement("div"); g.className="histgroup";
+    var min=0; groups[d].forEach(function(s){ min+=s.duration; });
+    var head=(d==="?")?"Sans date":longDate(parseYmd(d));
+    g.innerHTML='<div class="gh"><b>'+head+'</b><span>'+groups[d].length+' séance'+(groups[d].length>1?"s":"")+' · '+hrs(min)+' h</span></div>';
+    groups[d].forEach(function(s){
+      var t=typeOf(s.type);
+      var row=document.createElement("div");
+      row.className="row hist"; row.style.setProperty("--c",t.c);
+      row.innerHTML=
+        '<button class="tick" style="border-color:'+t.c+';color:'+t.c+'">✓</button>'+
+        '<div class="body"><div class="t">'+esc(s.name)+'</div>'+
+        '<div class="s"><span style="color:'+t.c+'">'+t.label+'</span><span>'+durLabel(s.duration)+'</span>'+(s.time?'<span>'+esc(s.time)+'</span>':'')+'</div></div>'+
+        '<button class="mini und">Annuler</button>'+
+        '<button class="mini rm">✕</button>';
+      row.querySelector(".und").onclick=function(){ uncomplete(s.id); };
+      row.querySelector(".rm").onclick=function(){ remove(s.id); };
+      g.appendChild(row);
+    });
+    box.appendChild(g);
+  });
+}
+
+function render(){
+  byId("plCTodo").textContent = state.sessions.filter(function(s){return s.status==="todo";}).length || "";
+  byId("plCDone").textContent = state.sessions.filter(function(s){return s.status==="done";}).length || "";
+  byId("plVWeek").hidden = view!=="week";
+  byId("plVTodo").hidden = view!=="todo";
+  byId("plVDone").hidden = view!=="done";
+  if(view==="week") renderWeek();
+  if(view==="todo") renderTodo();
+  if(view==="done") renderDone();
+}
+
+Array.prototype.forEach.call(document.querySelectorAll("#module-sessions .tabs button"),function(b){
+  b.onclick=function(){
+    view=b.dataset.pltab;
+    Array.prototype.forEach.call(document.querySelectorAll("#module-sessions .tabs button"),function(x){ x.classList.toggle("on", x===b); });
+    render();
+  };
+});
+byId("plPrevW").onclick=function(){ anchor=addDays(mondayOf(anchor),-7); renderWeek(); };
+byId("plNextW").onclick=function(){ anchor=addDays(mondayOf(anchor),7); renderWeek(); };
+byId("plTodayBtn").onclick=function(){ anchor=new Date(); renderWeek(); };
+
+/* ---------- hooks pour l'export/import unifié de HashProjects ---------- */
+window.plannerExportState = function(){ return { sessions: state.sessions }; };
+window.plannerImportState = function(d){
+  if(d && Array.isArray(d.sessions)){ state.sessions=d.sessions; save(); render(); }
+};
+
+(function init(){
+  var sel=byId("plQType");
+  TYPES.forEach(function(t){
+    var o=document.createElement("option"); o.value=t.id; o.textContent=t.label; sel.appendChild(o);
+  });
+  sel.value="revision";
+  load();
+  render();
+})();
+
+})();
 </script>
 </body>
 </html>
