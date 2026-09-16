@@ -105,6 +105,10 @@
         background:#20232a; color:#cfd2d8; border:1px solid #343741; border-radius:9px;
         padding:7px 8px; font-size:11px; outline:none; cursor:pointer;
     }
+    .task-date {
+        width:auto; background:#20232a; color:#cfd2d8; border:1px solid #343741; border-radius:9px;
+        padding:6px 8px; font-size:11px; outline:none; cursor:pointer; color-scheme:dark;
+    }
     .delete, .icon-btn {
         background:transparent; color:#696d77; padding:7px 8px; font-size:16px; border-radius:9px;
     }
@@ -266,6 +270,20 @@
     #module-sessions .day .add { margin-top:auto; border:1px dashed var(--line); border-radius:9px; padding:7px; font-size:12px; color:var(--muted); text-align:center; transition:.15s; width:100%; }
     #module-sessions .day .add:hover { border-color:var(--lime); color:var(--lime); background:var(--lime-dim); }
     #module-sessions .day .dayh { font-size:11px; color:var(--muted); margin-bottom:8px; font-weight:600; }
+
+    #module-sessions .day-tasks { margin:2px 0 8px; }
+    #module-sessions .day-task { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px dashed var(--line); }
+    #module-sessions .day-task:last-child { border-bottom:none; }
+    #module-sessions .day-task.done .dt-text { text-decoration:line-through; color:var(--muted); }
+    #module-sessions .dt-check { width:16px; height:16px; flex:0 0 16px; border-radius:5px; border:1.5px solid var(--line); display:grid; place-items:center; font-size:10px; color:transparent; transition:.15s; }
+    #module-sessions .dt-check:hover { border-color:var(--lime); color:var(--lime); background:var(--lime-dim); }
+    #module-sessions .day-task.done .dt-check { border-color:var(--lime); color:var(--lime); background:var(--lime-dim); }
+    #module-sessions .dt-text { flex:1; font-size:12px; line-height:1.3; word-break:break-word; }
+    #module-sessions .dt-x { flex:0 0 auto; font-size:11px; color:var(--muted); opacity:.6; padding:2px 3px; }
+    #module-sessions .dt-x:hover { color:var(--rose); opacity:1; }
+    #module-sessions .day .day-task-add { margin-top:auto; }
+    #module-sessions .day-task-input { width:100%; background:var(--panel2); border:1px solid var(--lime); border-radius:9px; padding:6px 8px; font-size:12px; }
+    #module-sessions .day-task-input:focus { outline:none; }
 
     #module-sessions .sess { background:var(--panel2); border:1px solid var(--line); border-left:3px solid var(--lime); border-radius:10px; padding:8px 9px; margin-bottom:7px; position:relative; cursor:grab; touch-action:none; }
     #module-sessions .sess:active { cursor:grabbing; }
@@ -690,11 +708,28 @@ function addHistory(text) {
 function addTask() {
     const text = input.value.trim();
     if (!text) return;
-    tasks.unshift({ id: Date.now(), text, status: "todo" });
+    tasks.unshift({ id: Date.now(), text, status: "todo", date: null });
     addHistory(`Tâche ajoutée : ${text}`);
     input.value = "";
     saveTasks();
     renderTasksModule();
+}
+function addTaskForDay(text, dateStr) {
+    const t = text.trim();
+    if (!t) return;
+    tasks.unshift({ id: Date.now(), text: t, status: "todo", date: dateStr || null });
+    addHistory(`Tâche ajoutée : ${t}`);
+    saveTasks();
+    renderTasksModule();
+    if (window.plannerRefreshWeek) window.plannerRefreshWeek();
+}
+function setTaskDate(id, dateStr) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    task.date = dateStr || null;
+    saveTasks();
+    renderTasksModule();
+    if (window.plannerRefreshWeek) window.plannerRefreshWeek();
 }
 function changeStatus(id, status) {
     const task = tasks.find(t => t.id === id);
@@ -706,6 +741,7 @@ function changeStatus(id, status) {
     }
     saveTasks();
     renderTasksModule();
+    if (window.plannerRefreshWeek) window.plannerRefreshWeek();
 }
 function deleteTask(id) {
     const task = tasks.find(t => t.id === id);
@@ -714,6 +750,7 @@ function deleteTask(id) {
     addHistory(`Tâche supprimée : ${task.text}`);
     saveTasks();
     renderTasksModule();
+    if (window.plannerRefreshWeek) window.plannerRefreshWeek();
 }
 function setTaskFilter(filter) {
     currentTaskFilter = filter;
@@ -745,6 +782,7 @@ function renderTaskList() {
                         <option value="doing" ${t.status==="doing"?"selected":""}>En cours</option>
                         <option value="done" ${t.status==="done"?"selected":""}>Done</option>
                     </select>
+                    <input type="date" class="task-date" value="${t.date||""}" onchange="setTaskDate(${t.id}, this.value)" title="Assigner à un jour">
                 </div>
             </div>
             <button class="delete" title="Supprimer" onclick="deleteTask(${t.id})">×</button>
@@ -1355,6 +1393,33 @@ function startDrag(e, sourceEl, id){
   document.addEventListener("pointercancel", onUp);
 }
 
+function dayTaskAddControl(ds){
+  var wrap=document.createElement("div");
+  wrap.className="day-task-add";
+  var btn=document.createElement("button");
+  btn.className="add"; btn.textContent="+ tâche";
+  btn.onclick=function(){
+    wrap.innerHTML="";
+    var inp=document.createElement("input");
+    inp.type="text"; inp.className="day-task-input"; inp.placeholder="Nouvelle tâche…";
+    wrap.appendChild(inp);
+    inp.focus();
+    var handled=false;
+    function commit(){
+      if(handled) return; handled=true;
+      var v=inp.value.trim();
+      if(v && typeof addTaskForDay==="function") addTaskForDay(v, ds);
+      renderWeek();
+    }
+    inp.addEventListener("keydown", function(e){
+      if(e.key==="Enter"){ e.preventDefault(); commit(); }
+      else if(e.key==="Escape"){ handled=true; renderWeek(); }
+    });
+    inp.addEventListener("blur", function(){ commit(); });
+  };
+  wrap.appendChild(btn);
+  return wrap;
+}
 function renderWeek(){
   var mon=mondayOf(anchor);
   var sun=addDays(mon,6);
@@ -1384,10 +1449,23 @@ function renderWeek(){
       (dayMin?'<div class="dayh">'+hrs(dayMin)+' h planifiées</div>':'');
     list.forEach(function(s){ col.appendChild(sessionCard(s)); });
 
+    var dayTasks = (typeof tasks!=="undefined" ? tasks : []).filter(function(t){ return t.date===ds; });
+    if(dayTasks.length){
+      var tasksHtml = '<div class="day-tasks">' + dayTasks.map(function(t){
+        return '<div class="day-task'+(t.status==="done"?" done":"")+'">'+
+          '<button class="dt-check" onclick="toggleDone('+t.id+')" title="'+(t.status==="done"?"Marquer à faire":"Marquer fait")+'">'+(t.status==="done"?"✓":"")+'</button>'+
+          '<span class="dt-text">'+esc(t.text)+'</span>'+
+          '<button class="dt-x" onclick="setTaskDate('+t.id+',\'\')" title="Retirer de ce jour">✕</button>'+
+        '</div>';
+      }).join('') + '</div>';
+      col.insertAdjacentHTML('beforeend', tasksHtml);
+    }
+
     var add=document.createElement("button");
     add.className="add"; add.textContent="+ séance";
     (function(ds){ add.onclick=function(){ openModal({date:ds}); }; })(ds);
     col.appendChild(add);
+    col.appendChild(dayTaskAddControl(ds));
     grid.appendChild(col);
   }
 
@@ -1523,6 +1601,7 @@ window.plannerExportState = function(){ return { sessions: state.sessions }; };
 window.plannerImportState = function(d){
   if(d && Array.isArray(d.sessions)){ state.sessions=d.sessions; save(); render(); }
 };
+window.plannerRefreshWeek = function(){ if(view==="week") renderWeek(); };
 
 (function init(){
   load();
