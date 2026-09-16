@@ -105,10 +105,39 @@
         background:#20232a; color:#cfd2d8; border:1px solid #343741; border-radius:9px;
         padding:7px 8px; font-size:11px; outline:none; cursor:pointer;
     }
-    .task-date {
+    .task-date-btn {
         width:auto; background:#20232a; color:#cfd2d8; border:1px solid #343741; border-radius:9px;
-        padding:6px 8px; font-size:11px; outline:none; cursor:pointer; color-scheme:dark;
+        padding:6px 10px; font-size:11px; font-weight:600; outline:none; cursor:pointer; white-space:nowrap;
     }
+    .task-date-btn:hover { border-color:#4a4e59; }
+
+    /* Sélecteur de date maison (remplace <input type=date>, peu fiable pour taper l'année) */
+    .dp-pop {
+        position:fixed; z-index:10000; width:240px; background:var(--panel); border:1px solid var(--border);
+        border-radius:14px; padding:12px; box-shadow:0 20px 50px rgba(0,0,0,.5);
+    }
+    .dp-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+    .dp-label { font-weight:700; font-size:13px; text-transform:capitalize; }
+    .dp-nav { background:var(--panel2); border:1px solid var(--border); border-radius:8px; width:26px; height:26px; padding:0; font-size:14px; color:var(--text); }
+    .dp-nav:hover { border-color:var(--accent); color:var(--accent); }
+    .dp-weekdays { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:4px; }
+    .dp-weekdays span { text-align:center; font-size:10px; color:var(--muted); font-weight:700; display:block; }
+    .dp-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+    .dp-cell { aspect-ratio:1; border-radius:8px; font-size:12px; color:var(--text); background:transparent; border:1px solid transparent; display:grid; place-items:center; padding:0; }
+    .dp-cell:not(.dp-empty):hover { border-color:var(--accent); color:var(--accent); }
+    .dp-cell.dp-today { border-color:var(--border); font-weight:700; }
+    .dp-cell.dp-sel { background:var(--accent); color:#11140b; font-weight:800; }
+    .dp-cell.dp-empty { pointer-events:none; }
+    .dp-foot { display:flex; gap:8px; margin-top:10px; }
+    .dp-mini { flex:1; background:var(--panel2); border:1px solid var(--border); border-radius:9px; padding:7px; font-size:11px; color:var(--muted); }
+    .dp-mini:hover { color:var(--text); border-color:#4a4e59; }
+    .dp-mini.dp-clear:hover { color:var(--danger); border-color:var(--danger); }
+
+    #module-sessions .date-trigger {
+        width:100%; text-align:left; background:var(--panel2); color:var(--txt); border:1px solid var(--line);
+        border-radius:13px; padding:14px 15px; font-size:15px; cursor:pointer;
+    }
+    #module-sessions .date-trigger:hover { border-color:#4a4e59; }
     .delete, .icon-btn {
         background:transparent; color:#696d77; padding:7px 8px; font-size:16px; border-radius:9px;
     }
@@ -604,7 +633,7 @@
                 <form id="plMForm">
                     <div class="f"><label>Matière / sujet</label><input type="text" id="plMName" required placeholder="Analyse — TD chapitre 3"></div>
                     <div class="f f2">
-                        <div><label>Jour</label><input type="date" id="plMDate"></div>
+                        <div><label>Jour</label><button type="button" class="date-trigger" id="plMDateBtn"></button><input type="hidden" id="plMDate"></div>
                         <div><label>Heure</label><input type="time" id="plMTime"></div>
                     </div>
                     <div class="f"><label>Durée (minutes)</label><input type="number" id="plMDur" min="5" step="5" value="60" required></div>
@@ -696,6 +725,102 @@ function escapeHtml(str){
 }
 
 /* ========================================================================
+   SÉLECTEUR DE DATE MAISON
+   (remplace les <input type="date"> natifs — l'année ne se tapait pas
+   correctement au clavier sur certains navigateurs)
+   ======================================================================== */
+const DP_MONTHS = ["janvier","février","mars","avril","mai","juin","juillet","août","septembre","octobre","novembre","décembre"];
+const DP_MONTHS_ABBR = ["janv.","févr.","mars","avr.","mai","juin","juil.","août","sept.","oct.","nov.","déc."];
+const DP_DAYS = ["L","M","M","J","V","S","D"];
+
+function dpYmd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function dpParse(s){ return s ? new Date(s+"T00:00:00") : null; }
+function dpFormat(s){
+    if (!s) return "";
+    const d = dpParse(s);
+    return d.getDate()+" "+DP_MONTHS_ABBR[d.getMonth()]+" "+d.getFullYear();
+}
+
+let dpState = null;
+function closeDatePicker(){
+    if (!dpState) return;
+    dpState.pop.remove();
+    document.removeEventListener("mousedown", dpState.onDocClick, true);
+    document.removeEventListener("keydown", dpState.onKeyDown, true);
+    window.removeEventListener("scroll", dpState.onScroll, true);
+    dpState = null;
+}
+function openDatePicker(anchorEl, currentValue, onSelect, opts){
+    closeDatePicker();
+    opts = opts || {};
+    const base = dpParse(currentValue) || new Date();
+    let viewY = base.getFullYear(), viewM = base.getMonth();
+
+    const pop = document.createElement("div");
+    pop.className = "dp-pop";
+
+    function draw(){
+        const first = new Date(viewY, viewM, 1);
+        const startOffset = (first.getDay()+6)%7;
+        const daysInMonth = new Date(viewY, viewM+1, 0).getDate();
+        const todayS = dpYmd(new Date());
+        let cells = "";
+        for (let i=0;i<startOffset;i++) cells += '<span class="dp-cell dp-empty"></span>';
+        for (let day=1; day<=daysInMonth; day++){
+            const s = viewY+"-"+String(viewM+1).padStart(2,"0")+"-"+String(day).padStart(2,"0");
+            let cls = "dp-cell";
+            if (s===todayS) cls += " dp-today";
+            if (s===currentValue) cls += " dp-sel";
+            cells += '<button type="button" class="'+cls+'" data-d="'+s+'">'+day+'</button>';
+        }
+        pop.innerHTML =
+            '<div class="dp-head">'+
+                '<button type="button" class="dp-nav" data-nav="-1">‹</button>'+
+                '<span class="dp-label">'+DP_MONTHS[viewM]+' '+viewY+'</span>'+
+                '<button type="button" class="dp-nav" data-nav="1">›</button>'+
+            '</div>'+
+            '<div class="dp-weekdays">'+DP_DAYS.map(d=>'<span>'+d+'</span>').join('')+'</div>'+
+            '<div class="dp-grid">'+cells+'</div>'+
+            '<div class="dp-foot">'+
+                '<button type="button" class="dp-mini" data-today="1">Aujourd\'hui</button>'+
+                (opts.clearable ? '<button type="button" class="dp-mini dp-clear" data-clear="1">Effacer</button>' : '')+
+            '</div>';
+
+        pop.querySelector('[data-nav="-1"]').onclick = () => { viewM--; if (viewM<0){viewM=11;viewY--;} draw(); };
+        pop.querySelector('[data-nav="1"]').onclick = () => { viewM++; if (viewM>11){viewM=0;viewY++;} draw(); };
+        pop.querySelectorAll(".dp-cell[data-d]").forEach(btn => {
+            btn.onclick = () => { onSelect(btn.dataset.d); closeDatePicker(); };
+        });
+        const todayBtn = pop.querySelector("[data-today]");
+        if (todayBtn) todayBtn.onclick = () => { onSelect(dpYmd(new Date())); closeDatePicker(); };
+        const clearBtn = pop.querySelector("[data-clear]");
+        if (clearBtn) clearBtn.onclick = () => { onSelect(""); closeDatePicker(); };
+    }
+    draw();
+    document.body.appendChild(pop);
+
+    const r = anchorEl.getBoundingClientRect();
+    const popW = 240;
+    let left = r.left;
+    if (left + popW > window.innerWidth - 8) left = window.innerWidth - popW - 8;
+    pop.style.left = Math.max(8, left) + "px";
+    let top = r.bottom + 6;
+    if (top + 320 > window.innerHeight - 8) top = r.top - 326;
+    pop.style.top = Math.max(8, top) + "px";
+
+    function onDocClick(e){ if (!pop.contains(e.target) && e.target!==anchorEl) closeDatePicker(); }
+    function onKeyDown(e){ if (e.key==="Escape") closeDatePicker(); }
+    function onScroll(){ closeDatePicker(); }
+    setTimeout(() => {
+        document.addEventListener("mousedown", onDocClick, true);
+        document.addEventListener("keydown", onKeyDown, true);
+        window.addEventListener("scroll", onScroll, true);
+    }, 0);
+
+    dpState = { pop, onDocClick, onKeyDown, onScroll };
+}
+
+/* ========================================================================
    MODULE : TÂCHES
    ======================================================================== */
 const input = document.getElementById("taskInput");
@@ -730,6 +855,10 @@ function setTaskDate(id, dateStr) {
     saveTasks();
     renderTasksModule();
     if (window.plannerRefreshWeek) window.plannerRefreshWeek();
+}
+function pickTaskDate(id, anchorEl) {
+    const task = tasks.find(t => t.id === id);
+    openDatePicker(anchorEl, task ? task.date : null, v => setTaskDate(id, v), { clearable: true });
 }
 function changeStatus(id, status) {
     const task = tasks.find(t => t.id === id);
@@ -782,7 +911,7 @@ function renderTaskList() {
                         <option value="doing" ${t.status==="doing"?"selected":""}>En cours</option>
                         <option value="done" ${t.status==="done"?"selected":""}>Done</option>
                     </select>
-                    <input type="date" class="task-date" value="${t.date||""}" onchange="setTaskDate(${t.id}, this.value)" title="Assigner à un jour">
+                    <button type="button" class="task-date-btn" onclick="pickTaskDate(${t.id}, this)" title="Assigner à un jour">${t.date ? dpFormat(t.date) : "📅 Jour"}</button>
                 </div>
             </div>
             <button class="delete" title="Supprimer" onclick="deleteTask(${t.id})">×</button>
@@ -1268,6 +1397,10 @@ function remove(id){
   save(); render();
 }
 
+function updateMDateBtn(){
+  var v=byId("plMDate").value;
+  byId("plMDateBtn").textContent = v ? dpFormat(v) : "Choisir un jour";
+}
 function openModal(opts){
   opts=opts||{};
   editId=opts.id||null;
@@ -1275,6 +1408,7 @@ function openModal(opts){
   byId("plMTitle").textContent = s ? "Modifier la séance" : "Nouvelle séance";
   byId("plMName").value = s ? s.name : "";
   byId("plMDate").value = s ? (s.date||"") : (opts.date||ymd(new Date()));
+  updateMDateBtn();
   byId("plMTime").value = s ? (s.time||"") : (opts.time||"");
   byId("plMDur").value  = s ? s.duration : 60;
   byId("plOverlay").hidden=false;
@@ -1301,6 +1435,12 @@ byId("plMForm").addEventListener("submit",function(e){
   }
   save(); closeModal(); render();
 });
+byId("plMDateBtn").onclick=function(){
+  openDatePicker(byId("plMDateBtn"), byId("plMDate").value, function(v){
+    byId("plMDate").value = v;
+    updateMDateBtn();
+  }, {clearable:true});
+};
 byId("plMCancel").onclick=closeModal;
 byId("plOverlay").addEventListener("click",function(e){ if(e.target===this) closeModal(); });
 document.addEventListener("keydown",function(e){ if(e.key==="Escape" && !byId("plOverlay").hidden) closeModal(); });
