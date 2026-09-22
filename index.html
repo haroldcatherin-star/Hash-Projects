@@ -274,6 +274,23 @@
     #module-sessions .ghost { border:1px solid var(--line); background:var(--panel); padding:8px 12px; border-radius:10px; font-size:13px; color:var(--muted); transition:.15s; }
     #module-sessions .ghost:hover { color:var(--txt); border-color:#39441f; }
 
+    #module-sessions .span-toggle { display:flex; gap:4px; background:var(--panel); border:1px solid var(--line); padding:3px; border-radius:10px; }
+    #module-sessions .span-toggle button { padding:7px 11px; border-radius:7px; font-size:12px; font-weight:600; color:var(--muted); }
+    #module-sessions .span-toggle button.on { background:var(--lime); color:#11140b; }
+    #module-sessions .span-toggle button:not(.on):hover { color:var(--txt); }
+
+    #module-sessions #plWeekGrid { display:flex; flex-direction:column; gap:20px; }
+    #module-sessions .week-block-label { font-weight:700; font-size:13px; color:var(--muted); margin-bottom:8px; }
+    #module-sessions .events-row { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:9px; margin-bottom:9px; }
+    #module-sessions .event-bar {
+        background:rgba(255,180,84,.16); border:1px solid var(--amber); color:var(--amber); border-radius:7px;
+        padding:0 8px; font-size:11px; font-weight:700; display:flex; align-items:center;
+        overflow:hidden; white-space:nowrap; text-overflow:ellipsis; cursor:pointer; height:22px;
+    }
+    #module-sessions .event-bar:hover { background:rgba(255,180,84,.28); }
+    #module-sessions .event-delete-btn { width:100%; margin-top:10px; border:1px solid var(--line); background:transparent; border-radius:11px; padding:10px; color:var(--muted); font-size:13px; }
+    #module-sessions .event-delete-btn:hover { color:var(--rose); border-color:var(--rose); }
+
     #module-sessions .pl-stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:18px; }
     #module-sessions .pl-stat { background:var(--panel); border:1px solid var(--line); border-radius:var(--radius); padding:14px 16px; }
     #module-sessions .pl-stat .k { font-size:11px; text-transform:uppercase; letter-spacing:.9px; color:var(--muted); font-weight:600; }
@@ -386,6 +403,8 @@
     @media (max-width:900px) {
         #module-sessions .week { grid-template-columns:repeat(2,minmax(0,1fr)); }
         #module-sessions .day { min-height:0; }
+        #module-sessions .events-row { display:flex; flex-direction:column; gap:6px; }
+        #module-sessions .event-bar { grid-column:auto !important; grid-row:auto !important; }
     }
     @media (max-width:520px) {
         #module-sessions .week { grid-template-columns:1fr; }
@@ -590,10 +609,15 @@
                     <div class="sub" id="plWSub"></div>
                 </div>
                 <div class="spacer"></div>
+                <div class="span-toggle" id="plSpanToggle">
+                    <button class="on" data-span="1">1 sem.</button>
+                    <button data-span="4">4 sem.</button>
+                </div>
+                <button class="ghost" id="plAddEventBtn">+ Event</button>
                 <button class="ghost" id="plTodayBtn">Aujourd'hui</button>
             </div>
 
-            <div class="week" id="plWeekGrid"></div>
+            <div id="plWeekGrid"></div>
 
             <div class="pl-panel" id="plDropTodo" style="margin-top:18px">
                 <h2>À faire <span class="count" id="plCTodo"></span></h2>
@@ -641,6 +665,24 @@
                         <button class="save" type="submit">Enregistrer</button>
                         <button class="cancel" type="button" id="plMCancel">Annuler</button>
                     </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="overlay" id="plEventOverlay" hidden>
+            <div class="pl-modal">
+                <h2 id="plEMTitle">Nouvel event</h2>
+                <form id="plEMForm">
+                    <div class="f"><label>Titre</label><input type="text" id="plEMName" required placeholder="Semaine d'examens, voyage…"></div>
+                    <div class="f f2">
+                        <div><label>Début</label><button type="button" class="date-trigger" id="plEMStartBtn"></button><input type="hidden" id="plEMStart"></div>
+                        <div><label>Fin</label><button type="button" class="date-trigger" id="plEMEndBtn"></button><input type="hidden" id="plEMEnd"></div>
+                    </div>
+                    <div class="mbtns">
+                        <button class="save" type="submit">Enregistrer</button>
+                        <button class="cancel" type="button" id="plEMCancel">Annuler</button>
+                    </div>
+                    <button type="button" class="event-delete-btn" id="plEMDelete" hidden>Supprimer l'event</button>
                 </form>
             </div>
         </div>
@@ -1334,16 +1376,22 @@ renderTasksModule();
 "use strict";
 
 var KEY="hashprojects_planner_v1";
-var state={ sessions:[] };
+var state={ sessions:[], events:[] };
 var view="week";
 var anchor=new Date();
 var editId=null;
+var editEventId=null;
+var weekSpan=1;
 
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
 function load(){
   try{
     var raw=localStorage.getItem(KEY);
-    if(raw){ var d=JSON.parse(raw); if(d && d.sessions) state.sessions=d.sessions; }
+    if(raw){
+      var d=JSON.parse(raw);
+      if(d && d.sessions) state.sessions=d.sessions;
+      if(d && Array.isArray(d.events)) state.events=d.events;
+    }
   }catch(e){}
 }
 
@@ -1443,7 +1491,79 @@ byId("plMDateBtn").onclick=function(){
 };
 byId("plMCancel").onclick=closeModal;
 byId("plOverlay").addEventListener("click",function(e){ if(e.target===this) closeModal(); });
-document.addEventListener("keydown",function(e){ if(e.key==="Escape" && !byId("plOverlay").hidden) closeModal(); });
+document.addEventListener("keydown",function(e){
+  if(e.key!=="Escape") return;
+  if(!byId("plOverlay").hidden) closeModal();
+  if(!byId("plEventOverlay").hidden) closeEventModal();
+});
+
+/* ---------- events (multi-jours, hors séances) ---------- */
+function findEvent(id){
+  var evs=state.events||[];
+  for(var i=0;i<evs.length;i++) if(evs[i].id===id) return evs[i];
+  return null;
+}
+function removeEvent(id){
+  state.events=(state.events||[]).filter(function(e){ return e.id!==id; });
+  save(); renderWeek();
+}
+function updateEMDateBtns(){
+  var sv=byId("plEMStart").value, ev=byId("plEMEnd").value;
+  byId("plEMStartBtn").textContent = sv ? dpFormat(sv) : "Choisir un jour";
+  byId("plEMEndBtn").textContent = ev ? dpFormat(ev) : "Choisir un jour";
+}
+function openEventModal(opts){
+  opts=opts||{};
+  editEventId=opts.id||null;
+  var ev=editEventId?findEvent(editEventId):null;
+  byId("plEMTitle").textContent = ev ? "Modifier l'event" : "Nouvel event";
+  byId("plEMName").value = ev ? ev.title : "";
+  var startDefault = ev ? ev.start : (opts.date||ymd(new Date()));
+  var endDefault = ev ? ev.end : (opts.date||startDefault);
+  byId("plEMStart").value = startDefault;
+  byId("plEMEnd").value = endDefault;
+  updateEMDateBtns();
+  byId("plEMDelete").hidden = !ev;
+  byId("plEventOverlay").hidden=false;
+  setTimeout(function(){ byId("plEMName").focus(); },30);
+}
+function closeEventModal(){ byId("plEventOverlay").hidden=true; editEventId=null; }
+
+byId("plEMStartBtn").onclick=function(){
+  openDatePicker(byId("plEMStartBtn"), byId("plEMStart").value, function(v){
+    byId("plEMStart").value=v;
+    if(v && byId("plEMEnd").value && byId("plEMEnd").value<v){ byId("plEMEnd").value=v; }
+    updateEMDateBtns();
+  }, {});
+};
+byId("plEMEndBtn").onclick=function(){
+  openDatePicker(byId("plEMEndBtn"), byId("plEMEnd").value, function(v){
+    byId("plEMEnd").value=v;
+    updateEMDateBtns();
+  }, {});
+};
+byId("plEMForm").addEventListener("submit",function(e){
+  e.preventDefault();
+  var title=byId("plEMName").value.trim();
+  if(!title) return;
+  var start=byId("plEMStart").value, end=byId("plEMEnd").value||start;
+  if(!start) return;
+  if(end<start){ var tmp=start; start=end; end=tmp; }
+  if(editEventId){
+    var ev=findEvent(editEventId);
+    ev.title=title; ev.start=start; ev.end=end;
+  }else{
+    state.events.push({ id:uid(), title:title, start:start, end:end });
+  }
+  save(); closeEventModal(); renderWeek();
+});
+byId("plEMCancel").onclick=closeEventModal;
+byId("plEMDelete").onclick=function(){
+  if(editEventId) removeEvent(editEventId);
+  closeEventModal();
+};
+byId("plEventOverlay").addEventListener("click",function(e){ if(e.target===this) closeEventModal(); });
+byId("plAddEventBtn").onclick=function(){ openEventModal({ date: ymd(mondayOf(anchor)) }); };
 
 function sessionCard(s){
   var el=document.createElement("div");
@@ -1560,61 +1680,131 @@ function dayTaskAddControl(ds){
   wrap.appendChild(btn);
   return wrap;
 }
-function renderWeek(){
-  var mon=mondayOf(anchor);
+function diffDays(a,b){ return Math.round((parseYmd(b)-parseYmd(a))/86400000); }
+function eventsForWeek(mon){
   var sun=addDays(mon,6);
-  byId("plWLabel").textContent="Semaine "+isoWeek(mon);
-  byId("plWSub").textContent=mon.getDate()+" "+MONTHS[mon.getMonth()]+" – "+sun.getDate()+" "+MONTHS[sun.getMonth()]+" "+sun.getFullYear();
-
-  var grid=byId("plWeekGrid"); grid.innerHTML="";
-  var todayStr=ymd(new Date());
-  var planned=0, done=0, count=0, bySubject={};
-
-  for(var i=0;i<7;i++){
-    var d=addDays(mon,i), ds=ymd(d);
-    var col=document.createElement("div");
-    col.className="day"+(ds===todayStr?" today":"")+(ds<todayStr?" past":"");
-    col.dataset.date=ds;
-    var list=state.sessions.filter(function(s){ return s.date===ds && s.status!=="todo"; })
-      .sort(function(a,b){ return (a.time||"99:99").localeCompare(b.time||"99:99"); });
-
-    var dayMin=0;
-    list.forEach(function(s){
-      dayMin+=s.duration; planned+=s.duration; count++;
-      if(s.status==="done") done+=s.duration;
-      bySubject[s.name]=(bySubject[s.name]||0)+s.duration;
+  var monS=ymd(mon), sunS=ymd(sun);
+  var items=(state.events||[]).filter(function(ev){ return ev.end>=monS && ev.start<=sunS; })
+    .map(function(ev){
+      var startCol=Math.max(0, diffDays(monS, ev.start));
+      var endCol=Math.min(6, diffDays(monS, ev.end));
+      return { ev:ev, startCol:startCol, span:(endCol-startCol+1) };
     });
+  items.sort(function(a,b){ return a.startCol-b.startCol || b.span-a.span; });
+  var laneEnds=[];
+  items.forEach(function(it){
+    var lane=-1;
+    for(var l=0;l<laneEnds.length;l++){ if(laneEnds[l] < it.startCol){ lane=l; break; } }
+    if(lane===-1){ lane=laneEnds.length; laneEnds.push(-1); }
+    laneEnds[lane]=it.startCol+it.span-1;
+    it.lane=lane;
+  });
+  return items;
+}
+function buildEventsRow(mon){
+  var items=eventsForWeek(mon);
+  if(!items.length) return null;
+  var maxLane=0;
+  items.forEach(function(it){ if(it.lane>maxLane) maxLane=it.lane; });
+  var row=document.createElement("div");
+  row.className="events-row";
+  row.style.gridTemplateRows="repeat("+(maxLane+1)+",22px)";
+  items.forEach(function(it){
+    var bar=document.createElement("div");
+    bar.className="event-bar";
+    bar.style.gridColumn=(it.startCol+1)+" / span "+it.span;
+    bar.style.gridRow=(it.lane+1);
+    bar.textContent=it.ev.title;
+    bar.title=it.ev.title;
+    bar.onclick=function(){ openEventModal({id:it.ev.id}); };
+    row.appendChild(bar);
+  });
+  return row;
+}
+function buildDayCell(mon, i, todayStr, agg){
+  var d=addDays(mon,i), ds=ymd(d);
+  var col=document.createElement("div");
+  col.className="day"+(ds===todayStr?" today":"")+(ds<todayStr?" past":"");
+  col.dataset.date=ds;
+  var list=state.sessions.filter(function(s){ return s.date===ds && s.status!=="todo"; })
+    .sort(function(a,b){ return (a.time||"99:99").localeCompare(b.time||"99:99"); });
 
-    col.innerHTML='<h3>'+DAYS[i]+'</h3><div class="num">'+d.getDate()+'</div>'+
-      (dayMin?'<div class="dayh">'+hrs(dayMin)+' h planifiées</div>':'');
-    list.forEach(function(s){ col.appendChild(sessionCard(s)); });
+  var dayMin=0;
+  list.forEach(function(s){
+    dayMin+=s.duration; agg.planned+=s.duration; agg.count++;
+    if(s.status==="done") agg.done+=s.duration;
+    agg.bySubject[s.name]=(agg.bySubject[s.name]||0)+s.duration;
+  });
 
-    var dayTasks = (typeof tasks!=="undefined" ? tasks : []).filter(function(t){ return t.date===ds; });
-    if(dayTasks.length){
-      var tasksHtml = '<div class="day-tasks">' + dayTasks.map(function(t){
-        return '<div class="day-task'+(t.status==="done"?" done":"")+'">'+
-          '<button class="dt-check" onclick="toggleDone('+t.id+')" title="'+(t.status==="done"?"Marquer à faire":"Marquer fait")+'">'+(t.status==="done"?"✓":"")+'</button>'+
-          '<span class="dt-text">'+esc(t.text)+'</span>'+
-          '<button class="dt-x" onclick="setTaskDate('+t.id+',\'\')" title="Retirer de ce jour">✕</button>'+
-        '</div>';
-      }).join('') + '</div>';
-      col.insertAdjacentHTML('beforeend', tasksHtml);
-    }
+  col.innerHTML='<h3>'+DAYS[i]+'</h3><div class="num">'+d.getDate()+'</div>'+
+    (dayMin?'<div class="dayh">'+hrs(dayMin)+' h planifiées</div>':'');
+  list.forEach(function(s){ col.appendChild(sessionCard(s)); });
 
-    var add=document.createElement("button");
-    add.className="add"; add.textContent="+ séance";
-    (function(ds){ add.onclick=function(){ openModal({date:ds}); }; })(ds);
-    col.appendChild(add);
-    col.appendChild(dayTaskAddControl(ds));
-    grid.appendChild(col);
+  var dayTasks = (typeof tasks!=="undefined" ? tasks : []).filter(function(t){ return t.date===ds; });
+  if(dayTasks.length){
+    var tasksHtml = '<div class="day-tasks">' + dayTasks.map(function(t){
+      return '<div class="day-task'+(t.status==="done"?" done":"")+'">'+
+        '<button class="dt-check" onclick="toggleDone('+t.id+')" title="'+(t.status==="done"?"Marquer à faire":"Marquer fait")+'">'+(t.status==="done"?"✓":"")+'</button>'+
+        '<span class="dt-text">'+esc(t.text)+'</span>'+
+        '<button class="dt-x" onclick="setTaskDate('+t.id+',\'\')" title="Retirer de ce jour">✕</button>'+
+      '</div>';
+    }).join('') + '</div>';
+    col.insertAdjacentHTML('beforeend', tasksHtml);
   }
 
-  byId("plSPlan").innerHTML=hrs(planned)+'<small>h</small>';
-  byId("plSDone").innerHTML=hrs(done)+'<small>h</small>';
-  byId("plSBar").style.width=(planned?Math.min(100,done/planned*100):0)+"%";
-  byId("plSCount").textContent=count;
+  var add=document.createElement("button");
+  add.className="add"; add.textContent="+ séance";
+  (function(ds){ add.onclick=function(){ openModal({date:ds}); }; })(ds);
+  col.appendChild(add);
+  col.appendChild(dayTaskAddControl(ds));
+  return col;
+}
+function renderWeek(){
+  var mon0=mondayOf(anchor);
+  var todayStr=ymd(new Date());
+  var agg={ planned:0, done:0, count:0, bySubject:{} };
+
+  var grid=byId("plWeekGrid"); grid.innerHTML="";
+  for(var w=0; w<weekSpan; w++){
+    var mon=addDays(mon0, 7*w);
+    var sun=addDays(mon,6);
+    var block=document.createElement("div");
+    block.className="week-block";
+
+    if(weekSpan>1){
+      var lbl=document.createElement("div");
+      lbl.className="week-block-label";
+      var mAbbr = (typeof DP_MONTHS_ABBR!=="undefined") ? DP_MONTHS_ABBR : MONTHS;
+      lbl.textContent="Semaine "+isoWeek(mon)+" · "+mon.getDate()+" "+mAbbr[mon.getMonth()]+" – "+sun.getDate()+" "+mAbbr[sun.getMonth()];
+      block.appendChild(lbl);
+    }
+
+    var evRow=buildEventsRow(mon);
+    if(evRow) block.appendChild(evRow);
+
+    var weekEl=document.createElement("div");
+    weekEl.className="week";
+    for(var i=0;i<7;i++){ weekEl.appendChild(buildDayCell(mon, i, todayStr, agg)); }
+    block.appendChild(weekEl);
+    grid.appendChild(block);
+  }
+
+  if(weekSpan===1){
+    var sun0=addDays(mon0,6);
+    byId("plWLabel").textContent="Semaine "+isoWeek(mon0);
+    byId("plWSub").textContent=mon0.getDate()+" "+MONTHS[mon0.getMonth()]+" – "+sun0.getDate()+" "+MONTHS[sun0.getMonth()]+" "+sun0.getFullYear();
+  }else{
+    var lastSun=addDays(mon0, 7*weekSpan-1);
+    byId("plWLabel").textContent=weekSpan+" semaines";
+    byId("plWSub").textContent=mon0.getDate()+" "+MONTHS[mon0.getMonth()]+" – "+lastSun.getDate()+" "+MONTHS[lastSun.getMonth()]+" "+lastSun.getFullYear();
+  }
+
+  byId("plSPlan").innerHTML=hrs(agg.planned)+'<small>h</small>';
+  byId("plSDone").innerHTML=hrs(agg.done)+'<small>h</small>';
+  byId("plSBar").style.width=(agg.planned?Math.min(100,agg.done/agg.planned*100):0)+"%";
+  byId("plSCount").textContent=agg.count;
   var top="—",max=0;
-  for(var k in bySubject){ if(bySubject[k]>max){ max=bySubject[k]; top=k; } }
+  for(var k in agg.bySubject){ if(agg.bySubject[k]>max){ max=agg.bySubject[k]; top=k; } }
   byId("plSTop").textContent = top.length>18 ? top.slice(0,17)+"…" : top;
 }
 
@@ -1732,14 +1922,23 @@ Array.prototype.forEach.call(document.querySelectorAll("#module-sessions .tabs b
     render();
   };
 });
-byId("plPrevW").onclick=function(){ anchor=addDays(mondayOf(anchor),-7); renderWeek(); };
-byId("plNextW").onclick=function(){ anchor=addDays(mondayOf(anchor),7); renderWeek(); };
+byId("plPrevW").onclick=function(){ anchor=addDays(mondayOf(anchor),-7*weekSpan); renderWeek(); };
+byId("plNextW").onclick=function(){ anchor=addDays(mondayOf(anchor),7*weekSpan); renderWeek(); };
 byId("plTodayBtn").onclick=function(){ anchor=new Date(); renderWeek(); };
+Array.prototype.forEach.call(document.querySelectorAll("#plSpanToggle button"),function(b){
+  b.onclick=function(){
+    weekSpan=parseInt(b.dataset.span,10)||1;
+    Array.prototype.forEach.call(document.querySelectorAll("#plSpanToggle button"),function(x){ x.classList.toggle("on", x===b); });
+    renderWeek();
+  };
+});
 
 /* ---------- hooks pour l'export/import unifié de HashProjects ---------- */
-window.plannerExportState = function(){ return { sessions: state.sessions }; };
+window.plannerExportState = function(){ return { sessions: state.sessions, events: state.events }; };
 window.plannerImportState = function(d){
-  if(d && Array.isArray(d.sessions)){ state.sessions=d.sessions; save(); render(); }
+  if(d && Array.isArray(d.sessions)){ state.sessions=d.sessions; }
+  if(d && Array.isArray(d.events)){ state.events=d.events; }
+  if(d && (Array.isArray(d.sessions) || Array.isArray(d.events))){ save(); render(); }
 };
 window.plannerRefreshWeek = function(){ if(view==="week") renderWeek(); };
 
