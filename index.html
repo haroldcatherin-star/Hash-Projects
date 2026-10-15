@@ -254,6 +254,13 @@
         background:transparent; color:var(--fg); border:1px solid var(--line); font-size:13px; font-weight:500; padding:8px 14px;
     }
     .data-actions button:hover, .lock-btn:hover, .btn-ghost:hover { border-color:var(--line-strong); background:var(--surface2); filter:none; }
+    .sync-status { display:inline-flex; align-items:center; gap:7px; font-size:12.5px; color:var(--muted); }
+    .sync-dot { width:8px; height:8px; border-radius:50%; background:var(--line-strong); flex:none; }
+    .sync-dot.ok { background:#3fae6a; } .sync-dot.busy { background:var(--accent); animation:syncPulse 1s infinite; } .sync-dot.err { background:#d6452c; }
+    @keyframes syncPulse { 50% { opacity:.35; } }
+    .sync-form { display:flex; flex-direction:column; gap:10px; }
+    .sync-form input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line); background:var(--surface2); color:var(--fg); font:inherit; }
+    .sync-err { color:#d6452c; font-size:12.5px; min-height:1em; margin:0; }
     .lock-btn { color:var(--muted); }
 
     .modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:20; padding:16px; }
@@ -1121,8 +1128,14 @@
     </div>
 
     <div class="panel data-panel">
-        <p>Toutes tes données (tâches, habitudes, notes, séances, carnet et focus) sont stockées localement dans ce navigateur. Exporte une sauvegarde régulièrement si tu changes d'appareil.</p>
+        <div>
+            <p id="sync-text">Tes données sont stockées sur cet appareil. Connecte-toi pour les synchroniser entre ton PC, ton téléphone et l'app.</p>
+            <span class="sync-status" style="margin-top:6px"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Non connecté</span></span>
+        </div>
         <div class="data-actions">
+            <button id="sync-login-btn">Se connecter</button>
+            <button id="sync-now-btn" hidden>Synchroniser</button>
+            <button id="sync-logout-btn" hidden>Déconnexion</button>
             <button onclick="exportData()">Exporter</button>
             <button onclick="document.getElementById('file-import').click()">Importer</button>
         </div>
@@ -1131,6 +1144,25 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<div class="hp-overlay" id="sync-overlay" hidden>
+    <div class="hp-modal" role="dialog" aria-modal="true" aria-labelledby="sync-title" style="max-width:380px">
+        <div class="hp-head">
+            <h2 id="sync-title">Synchronisation</h2>
+            <button type="button" class="hp-x" id="sync-close" aria-label="Fermer">×</button>
+        </div>
+        <p class="hint">Utilise le même compte sur tous tes appareils. À la première connexion, les données de cet appareil sont envoyées si le cloud est vide ; sinon ce sont celles du cloud qui sont récupérées.</p>
+        <form class="sync-form" id="sync-form">
+            <input type="email" id="sync-email" placeholder="Email" autocomplete="username" required>
+            <input type="password" id="sync-pass" placeholder="Mot de passe (6 caractères min.)" autocomplete="current-password" minlength="6" required>
+            <p class="sync-err" id="sync-err"></p>
+            <div class="hp-btns">
+                <button type="button" class="btn-ghost" id="sync-signup">Créer un compte</button>
+                <button type="submit" id="sync-signin">Se connecter</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div class="hp-overlay" id="hp-overlay" hidden>
     <div class="hp-modal" role="dialog" aria-modal="true" aria-labelledby="hp-title">
@@ -3189,6 +3221,195 @@ setTimeout(function(){
     var n = home.querySelector(".hm-now");
     if (n) { var r = n.getBoundingClientRect(); if (r.top > window.innerHeight - 80) window.scrollTo({ top: window.scrollY + r.top - window.innerHeight/2 }); }
 }, 50);
+})();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
+<script>
+/* ============================================================================
+   SYNCHRO CLOUD (Supabase) — une ligne par module, la version la plus récente gagne.
+   Le localStorage reste la source locale (hors ligne OK) ; ce script le surveille.
+   ============================================================================ */
+(function(){
+"use strict";
+var SUPABASE_URL = "https://willpykmnhhjqxlqrcqp.supabase.co";
+var SUPABASE_KEY = "sb_publishable_v4jgX7cbNTKyEQuZTxn-NQ_algjo3vw";
+var TABLE = "hp_data";
+var KEYS = ["hashprojects_tasks_v1","hashprojects_history_v1","hashprojects_habits_v1","hashprojects_notes_v1",
+            "hashprojects_planner_v1","hashprojects_focus_v1","hashprojects_carnet_v1"];
+var META = "hashprojects_sync_meta_v1";
+var $ = function(id){ return document.getElementById(id); };
+var toast = function(m){ if (window.showToast) window.showToast(m); };
+
+var LS = window.localStorage;
+var origSet = LS.setItem.bind(LS), origGet = LS.getItem.bind(LS);
+var meta = {}; try { meta = JSON.parse(origGet(META) || "{}") || {}; } catch(e) {}
+function saveMeta(){ try { origSet(META, JSON.stringify(meta)); } catch(e) {} }
+
+var sb = null, user = null, applying = false, dirty = {}, pushTimer = null, busy = false, lastSync = null, errMsg = null;
+
+/* ---- surveille les écritures locales ---- */
+LS.setItem = function(k, v){
+    origSet(k, v);
+    if (applying || KEYS.indexOf(k) < 0) return;
+    meta[k] = Date.now(); saveMeta();
+    dirty[k] = true;
+    if (user) { clearTimeout(pushTimer); pushTimer = setTimeout(push, 1500); }
+};
+
+/* ---- applique une version distante en mémoire ---- */
+function applyKey(k, raw){
+    var d = JSON.parse(raw);
+    origSet(k, raw);
+    switch (k) {
+        case "hashprojects_tasks_v1":   if (Array.isArray(d)) tasks = d; break;
+        case "hashprojects_history_v1": if (Array.isArray(d)) history = d; break;
+        case "hashprojects_habits_v1":  if (d && Array.isArray(d.habits)) habitState = d; break;
+        case "hashprojects_notes_v1":   notesState = normalizeNotes(d); break;
+        case "hashprojects_planner_v1": if (window.plannerImportState) window.plannerImportState(d); break;
+        case "hashprojects_focus_v1":   if (window.focusImportState) window.focusImportState(d); break;
+        case "hashprojects_carnet_v1":  if (window.carnetImportState) window.carnetImportState(d); break;
+    }
+}
+function rerender(){
+    try { renderTasksModule(); } catch(e) {}
+    try { renderHabitsModule(); } catch(e) {}
+    var ta = document.activeElement;
+    if (!(ta && ta.closest && ta.closest("#module-notes"))) { try { renderNotesModule(); } catch(e) {} }
+    try { if (window.renderHome) window.renderHome(); } catch(e) {}
+}
+
+/* ---- récupère le cloud ---- */
+async function pull(){
+    var r = await sb.from(TABLE).select("module,data,updated_at");
+    if (r.error) throw r.error;
+    var remote = {}; (r.data || []).forEach(function(row){ remote[row.module] = row; });
+    var changed = false;
+    applying = true;
+    try {
+        KEYS.forEach(function(k){
+            var row = remote[k];
+            if (row) {
+                var rts = Date.parse(row.updated_at) || 0;
+                if (rts > (meta[k] || 0) && !dirty[k]) {
+                    try { applyKey(k, JSON.stringify(row.data)); meta[k] = rts; changed = true; } catch(e) { console.warn("sync apply", k, e); }
+                }
+            } else if (origGet(k) != null) {
+                // jamais envoyé : on pousse la version locale
+                if (!meta[k]) meta[k] = Date.now();
+                dirty[k] = true;
+            }
+        });
+    } finally { applying = false; }
+    saveMeta();
+    if (changed) rerender();
+    return changed;
+}
+
+/* ---- envoie les modules modifiés ---- */
+async function push(){
+    if (!user) return;
+    var ks = Object.keys(dirty); if (!ks.length) return;
+    var rows = [];
+    ks.forEach(function(k){
+        var raw = origGet(k); if (raw == null) { delete dirty[k]; return; }
+        try { rows.push({ user_id:user.id, module:k, data:JSON.parse(raw), updated_at:new Date(meta[k] || Date.now()).toISOString() }); }
+        catch(e) { delete dirty[k]; }
+    });
+    if (!rows.length) return;
+    ks.forEach(function(k){ delete dirty[k]; });
+    var r = await sb.from(TABLE).upsert(rows, { onConflict:"user_id,module" });
+    if (r.error) { rows.forEach(function(x){ dirty[x.module] = true; }); throw r.error; }
+    lastSync = Date.now();
+}
+
+async function syncNow(manual){
+    if (!sb || !user || busy) return;
+    if (!navigator.onLine) { errMsg = "Hors ligne"; renderUI(); return; }
+    busy = true; errMsg = null; renderUI();
+    try {
+        var changed = await pull();
+        await push();
+        lastSync = Date.now();
+        if (manual) toast(changed ? "Données mises à jour" : "Tout est synchronisé");
+    } catch(e) {
+        console.warn("sync", e); errMsg = "Erreur de synchro";
+        if (manual) toast("Synchro impossible : " + (e.message || e));
+    }
+    busy = false; renderUI();
+}
+
+/* ---- interface ---- */
+function ago(t){
+    var s = Math.round((Date.now() - t)/1000);
+    if (s < 60) return "à l'instant";
+    if (s < 3600) return "il y a " + Math.floor(s/60) + " min";
+    return "à " + new Date(t).toLocaleTimeString("fr-FR", { hour:"2-digit", minute:"2-digit" });
+}
+function renderUI(){
+    var dot = $("sync-dot"), lab = $("sync-label");
+    dot.className = "sync-dot" + (!user ? "" : busy ? " busy" : errMsg ? " err" : " ok");
+    if (!sb) lab.textContent = "Synchro indisponible (hors ligne ?)";
+    else if (!user) lab.textContent = "Non connecté";
+    else lab.textContent = (busy ? "Synchronisation…" : errMsg ? errMsg : lastSync ? "Synchronisé " + ago(lastSync) : "Connecté") + " · " + (user.email || "");
+    $("sync-text").textContent = user
+        ? "Tes données sont synchronisées entre tous les appareils connectés à ce compte, et restent utilisables hors ligne."
+        : "Tes données sont stockées sur cet appareil. Connecte-toi pour les synchroniser entre ton PC, ton téléphone et l'app.";
+    $("sync-login-btn").hidden = !!user;
+    $("sync-now-btn").hidden = !user;
+    $("sync-logout-btn").hidden = !user;
+}
+function openModal(){ $("sync-err").textContent = ""; $("sync-overlay").hidden = false; setTimeout(function(){ $("sync-email").focus(); }, 30); }
+function closeModal(){ $("sync-overlay").hidden = true; }
+
+async function auth(signup){
+    var email = $("sync-email").value.trim(), pass = $("sync-pass").value, err = $("sync-err");
+    if (!email || pass.length < 6) { err.textContent = "Email et mot de passe (6 caractères min.) requis."; return; }
+    if (!sb) { err.textContent = "Connexion au service impossible (hors ligne ?)."; return; }
+    err.textContent = "…";
+    var r = signup ? await sb.auth.signUp({ email:email, password:pass }) : await sb.auth.signInWithPassword({ email:email, password:pass });
+    if (r.error) {
+        var m = r.error.message || "";
+        err.textContent = /invalid login/i.test(m) ? "Email ou mot de passe incorrect."
+            : /already registered/i.test(m) ? "Ce compte existe déjà : clique sur « Se connecter »."
+            : /not confirmed/i.test(m) ? "Confirme d'abord ton email (lien reçu par mail)."
+            : m;
+        return;
+    }
+    if (signup && !r.data.session) { err.textContent = "Compte créé : clique sur le lien reçu par mail, puis connecte-toi."; return; }
+    closeModal(); toast("Connecté");
+}
+
+$("sync-login-btn").addEventListener("click", openModal);
+$("sync-close").addEventListener("click", closeModal);
+$("sync-overlay").addEventListener("click", function(e){ if (e.target === this) closeModal(); });
+$("sync-form").addEventListener("submit", function(e){ e.preventDefault(); auth(false); });
+$("sync-signup").addEventListener("click", function(){ auth(true); });
+$("sync-now-btn").addEventListener("click", function(){ syncNow(true); });
+$("sync-logout-btn").addEventListener("click", async function(){
+    if (!confirm("Se déconnecter ? Les données restent sur cet appareil mais ne seront plus synchronisées.")) return;
+    try { await push(); } catch(e) {}
+    await sb.auth.signOut();
+});
+
+/* ---- démarrage ---- */
+if (window.supabase && SUPABASE_KEY.indexOf("COLLE") !== 0) {
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true } });
+    sb.auth.onAuthStateChange(function(ev, session){
+        var was = user && user.id;
+        user = session ? session.user : null;
+        renderUI();
+        if (user && user.id !== was) setTimeout(function(){ syncNow(false); }, 0);
+    });
+    document.addEventListener("visibilitychange", function(){
+        if (!user) return;
+        if (document.visibilityState === "visible") syncNow(false);
+        else { clearTimeout(pushTimer); push().catch(function(){}); }
+    });
+    window.addEventListener("online", function(){ syncNow(false); });
+    setInterval(function(){ if (user && document.visibilityState === "visible") syncNow(false); else renderUI(); }, 30000);
+}
+renderUI();
+window.hpSyncNow = function(){ return syncNow(true); };
 })();
 </script>
 </body>
