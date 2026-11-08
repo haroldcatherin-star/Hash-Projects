@@ -3016,10 +3016,13 @@ var wake = null;
 function lockWake(){ try { if (window.Android && window.Android.keepScreenOn) window.Android.keepScreenOn(true); } catch(e) {} try { if (navigator.wakeLock) navigator.wakeLock.request("screen").then(function(w){ wake = w; }).catch(function(){}); } catch(e) {} }
 function releaseWake(){ try { if (window.Android && window.Android.keepScreenOn) window.Android.keepScreenOn(false); } catch(e) {} try { if (wake) wake.release(); } catch(e) {} wake = null; }
 
-function start(){ if (running) return; ensureAudio(); running = true; endAt = Date.now()+remaining*1000; lastSec = -1; $("fo-start").textContent = "Pause"; $("fo-sub").textContent = SUB[mode]; lockWake(); loop(); }
-function pause(){ if (!running) return; running = false; remaining = Math.max(0,(endAt-Date.now())/1000); cancelAnimationFrame(raf); $("fo-start").textContent = "Reprendre"; $("fo-sub").textContent = "En pause"; releaseWake(); draw(); }
+/* requestAnimationFrame est gelé quand l'onglet / l'écran est caché : un timer de secours déclenche la fin à l'heure */
+var endTimer = null;
+function armEnd(){ clearTimeout(endTimer); endTimer = setTimeout(function(){ if (running && Date.now() >= endAt - 50) finish(); else if (running) armEnd(); }, Math.max(0, endAt-Date.now())); }
+function start(){ if (running) return; ensureAudio(); running = true; endAt = Date.now()+remaining*1000; lastSec = -1; $("fo-start").textContent = "Pause"; $("fo-sub").textContent = SUB[mode]; lockWake(); armEnd(); loop(); }
+function pause(){ if (!running) return; running = false; clearTimeout(endTimer); remaining = Math.max(0,(endAt-Date.now())/1000); cancelAnimationFrame(raf); $("fo-start").textContent = "Reprendre"; $("fo-sub").textContent = "En pause"; releaseWake(); draw(); }
 function setMode(m, keepAuto, dur){
-    cancelAnimationFrame(raf); running = false; mode = m;
+    cancelAnimationFrame(raf); clearTimeout(endTimer); running = false; mode = m;
     var pb = st.plan && st.plan.blocks[st.plan.idx];
     if (dur == null) dur = (pb && pb.m === m) ? pb.d : settings[m];
     total = remaining = dur*60;
@@ -3030,7 +3033,8 @@ function setMode(m, keepAuto, dur){
     if (keepAuto && settings.auto) start();
 }
 function finish(){
-    cancelAnimationFrame(raf); running = false; releaseWake();
+    if (!running) return;
+    cancelAnimationFrame(raf); clearTimeout(endTimer); running = false; releaseWake();
     if (settings.sound) chime();
     if (mode === "focus"){
         var k = dayKey(); st.history[k] = st.history[k] || { n:0, min:0 };
@@ -3155,7 +3159,14 @@ function ensureAudio(){ try { ac = ac || new (window.AudioContext||window.webkit
 function beep(f, dur, vol, delay){ if (!ac) return; var o = ac.createOscillator(), g = ac.createGain(), t0 = ac.currentTime+(delay||0);
     o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(vol,t0+.01); g.gain.exponentialRampToValueAtTime(.0001,t0+dur);
     o.connect(g).connect(ac.destination); o.start(t0); o.stop(t0+dur+.05); }
-function chime(){ [[784,0],[988,.18],[1175,.36],[1568,.54]].forEach(function(x){ beep(x[0],1.1,.18,x[1]); }); }
+function chime(){
+    try { if (navigator.vibrate) navigator.vibrate([300,150,300,150,500]); } catch(e) {}
+    ensureAudio(); if (!ac) return;
+    /* le contexte audio est souvent suspendu quand l'appli revient du fond : on attend qu'il reprenne avant de jouer */
+    function play(){ [0, 1.6].forEach(function(o){ [[784,0],[988,.18],[1175,.36],[1568,.54]].forEach(function(x){ beep(x[0],1.1,.35,o+x[1]); }); }); }
+    if (ac.state === "running") play();
+    else { var p = ac.resume(); if (p && p.then) p.then(play, play); else play(); }
+}
 
 /* ---------- contrôles ---------- */
 $("fo-start").onclick = function(){ running ? pause() : start(); };
