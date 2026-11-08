@@ -689,6 +689,42 @@
     .hp-btns button { padding:10px 18px; }
     .hp-btns button:disabled { opacity:.45; cursor:default; filter:none; }
 
+    /* ---------- monde focus (île en blocs) ---------- */
+    .wd { grid-column:1 / -1; }
+    .wd-head { display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; }
+    .wd-head h2 { margin:0; }
+    .wd-sub { color:var(--muted); font-size:13px; margin-top:2px; }
+    .wd-kpis { display:flex; gap:22px; }
+    .wd-kpis div { display:flex; flex-direction:column; align-items:flex-end; }
+    .wd-kpis b { font-family:var(--display); font-size:1.45rem; font-weight:700; line-height:1.1; font-variant-numeric:tabular-nums; }
+    .wd-kpis span { font-size:11px; color:var(--muted); }
+    .wd-lvbar { height:6px; background:var(--fill); border-radius:3px; margin:12px 0; overflow:hidden; }
+    .wd-lvbar i { display:block; height:100%; width:0; background:var(--green); border-radius:3px; transition:width .6s; }
+    .wd-stage { position:relative; border-radius:14px; background:var(--surface2); overflow:hidden; }
+    #wd-canvas { display:block; width:100%; height:400px; cursor:pointer; touch-action:manipulation; }
+    .wd-proj { position:absolute; left:12px; top:12px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:9px 12px; font-size:13px; width:220px; }
+    .wd-proj .k { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; color:var(--amber); }
+    .wd-proj b { display:block; font-size:15px; margin:1px 0 0; }
+    .wd-proj .m { color:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+    .wd-proj .bar { height:6px; background:var(--fill); border-radius:3px; margin:7px 0 5px; overflow:hidden; }
+    .wd-proj .bar i { display:block; height:100%; background:var(--amber); border-radius:3px; transition:width .5s; }
+    .wd-proj .bar i.live { background:repeating-linear-gradient(45deg, var(--amber) 0 6px, color-mix(in srgb, var(--amber) 70%, #fff) 6px 12px); }
+    .wd-tip { position:absolute; right:12px; bottom:12px; display:flex; align-items:center; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:12px; padding:7px 8px 7px 12px; font-size:13px; }
+    .wd-tip:empty { display:none; }
+    .wd-tip button { padding:5px 10px; font-size:12.5px; }
+    .wd-shoph { display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin:16px 0 8px; flex-wrap:wrap; }
+    .wd-shoph h3 { margin:0; font-size:15px; }
+    .wd-shoph span { color:var(--muted); font-size:12px; }
+    .wd-shop { display:grid; grid-template-columns:repeat(auto-fill, minmax(104px, 1fr)); gap:8px; }
+    .wd-item { display:flex; flex-direction:column; align-items:center; gap:1px; padding:8px 6px 9px; background:var(--surface2); border:1.5px solid var(--line); border-radius:12px; color:var(--fg); font-size:13px; font-weight:500; }
+    .wd-item:hover { border-color:var(--line-strong); filter:none; }
+    .wd-item canvas { width:64px; height:64px; }
+    .wd-item .c { font-family:var(--mono); font-size:11.5px; color:var(--muted); font-weight:400; }
+    .wd-item[aria-pressed="true"] { border-color:var(--accent); background:var(--accent-soft); }
+    .wd-item.locked { opacity:.5; cursor:default; }
+    .wd-item.locked canvas { filter:grayscale(1) brightness(.8); }
+    @media (max-width:620px) { #wd-canvas { height:300px; } .wd-proj { position:static; width:auto; margin:8px; } .wd-kpis { gap:14px; } }
+
     /* ---------- personnalisation ---------- */
     :root[data-oled][data-theme="dark"] { --bg:#000; --surface:#0b0b0c; --surface2:#161618; --line:#242426; --line-strong:#353538; --seg:#2c2c2e; }
     @media (prefers-color-scheme: dark) { :root[data-oled]:not([data-theme="light"]) { --bg:#000; --surface:#0b0b0c; --surface2:#161618; --line:#242426; --line-strong:#353538; --seg:#2c2c2e; } }
@@ -1261,6 +1297,28 @@
                 </div>
             </details>
         </aside>
+
+        <section class="panel wd" id="wd" aria-label="Ton île">
+            <div class="wd-head">
+                <div>
+                    <h2>Ton île</h2>
+                    <div class="wd-sub" id="wd-sub"></div>
+                </div>
+                <div class="wd-kpis">
+                    <div><b id="wd-level">1</b><span>Niveau</span></div>
+                    <div><b id="wd-bricks">0</b><span>Briques</span></div>
+                    <div><b id="wd-count">0</b><span>Bâtiments</span></div>
+                </div>
+            </div>
+            <div class="wd-lvbar"><i id="wd-lvfill"></i></div>
+            <div class="wd-stage">
+                <canvas id="wd-canvas" aria-label="Île en blocs : chaque minute de focus construit ton prochain bâtiment"></canvas>
+                <div class="wd-proj" id="wd-proj"></div>
+                <div class="wd-tip" id="wd-tip"></div>
+            </div>
+            <div class="wd-shoph"><h3>Prochain chantier</h3><span>1 minute de focus = 1 brique</span></div>
+            <div class="wd-shop" id="wd-shop"></div>
+        </section>
     </div>
 
     <!-- ===================== MODULE : SÉANCES ===================== -->
@@ -3283,6 +3341,7 @@ function finish(){
         var k = dayKey(); st.history[k] = st.history[k] || { n:0, min:0 };
         st.history[k].n++; st.history[k].min += Math.round(total/60);
         st.cycle++; save(); renderStats();
+        if (window.worldAward) window.worldAward(Math.round(total/60), st.cycle % settings.every === 0);
     } else if (mode === "long"){ st.cycle = 0; save(); }
     if (st.plan){ advancePlan(true, mode === "focus" ? "Bloc de focus terminé, pause !" : "Pause finie, on s'y remet."); return; }
     if (mode === "focus"){
@@ -3433,6 +3492,9 @@ setInterval(function(){
 
 /* ---------- export / import ---------- */
 window.focusExportState = function(){ return { settings:settings, history:st.history }; };
+/* état en direct pour le monde (chantier qui monte pendant le focus) */
+window.focusLive = function(){ var s = running ? (endAt-Date.now())/1000 : remaining;
+    return { running:running, mode:mode, doneMin:Math.max(0, (total - Math.max(0, s))/60), totalMin:total/60 }; };
 window.focusImportState = function(d){
     if (!d || typeof d !== "object") return;
     if (d.settings) { Object.assign(settings, DEFAULTS, d.settings); }
@@ -3566,6 +3628,200 @@ window.carnetImportState = function(d){ load(d); save(); render(); };
 render();
 })();
 </script>
+<script>
+/* ============================================================================
+   MONDE FOCUS — une île en blocs : chaque minute de focus = 1 brique,
+   les briques font avancer le chantier choisi, le bâtiment apparaît une fois payé.
+   ============================================================================ */
+(function(){
+"use strict";
+var KEY = "hashprojects_world_v1";
+var $ = function(id){ return document.getElementById(id); };
+var LEVELS = [0, 60, 180, 400, 750, 1250, 2000, 3000, 4500, 6500];   // briques totales pour atteindre chaque niveau
+function levelOf(t){ var l = 1; for (var i = 1; i < LEVELS.length; i++) if (t >= LEVELS[i]) l = i + 1; return l; }
+function sizeOf(l){ return Math.min(9, 3 + l); }                     // l'île grandit avec le niveau : 4×4 → 9×9
+
+var C = { grass:"#86c96f", grass2:"#7abf63", dirt:"#9a6b43", leaf:"#4f9d48", leaf2:"#6cbf55", trunk:"#7a4f2c", wood:"#a8723f", plank:"#d9a96a",
+          wall:"#efe5d1", roof:"#d9573b", roof2:"#b8432b", stone:"#b3b3ba", stone2:"#8e8e97", water:"#5bb4e5", glass:"#9cc9dc", glass2:"#5f8ea5",
+          white:"#f3f3f0", red:"#d6453a", gold:"#f2c94c", door:"#5a3b22", flag:"#e0483b", sand:"#e7d39d", dark:"#3d3d44", pink:"#f29bb5" };
+function M(){ var m = {}, api = {
+    box:function(x,y,z,w,d,h,c){ for (var i=x;i<x+w;i++) for (var j=y;j<y+d;j++) for (var k=z;k<z+h;k++) m[i+","+j+","+k] = { x:i, y:j, z:k, c: typeof c === "function" ? c(i,j,k) : c }; return api; },
+    list:function(){ return Object.keys(m).map(function(k){ return m[k]; }); } }; return api; }
+
+var B = [
+  { id:"buisson", name:"Buisson", cost:10, lvl:1, m:function(){ return M().box(1,1,0,2,2,1,C.leaf2).box(1,1,1,1,1,1,C.leaf).box(2,2,1,1,1,1,C.pink); } },
+  { id:"arbre", name:"Arbre", cost:20, lvl:1, m:function(){ return M().box(1,1,0,1,1,2,C.trunk).box(0,0,2,3,3,2,function(i,j,k){ return (i+j+k)%3 ? C.leaf : C.leaf2; }).box(1,1,4,1,1,1,C.leaf2); } },
+  { id:"cabane", name:"Cabane", cost:30, lvl:1, m:function(){ return M().box(0,0,0,3,3,2,C.plank).box(2,1,0,1,1,1,C.door).box(0,0,2,3,3,1,C.roof).box(1,1,3,1,1,1,C.roof2); } },
+  { id:"potager", name:"Potager", cost:35, lvl:2, m:function(){ return M().box(0,0,0,4,4,1,C.dirt).box(0,0,1,4,1,1,C.leaf2).box(0,2,1,4,1,1,C.leaf2).box(1,0,2,1,1,1,C.red).box(2,2,2,1,1,1,C.gold); } },
+  { id:"fontaine", name:"Fontaine", cost:45, lvl:2, m:function(){ return M().box(0,0,0,4,4,1,C.stone).box(1,1,0,2,2,1,C.water).box(1,1,1,1,1,2,C.stone2).box(1,1,3,1,1,1,C.water); } },
+  { id:"maison", name:"Maison", cost:60, lvl:2, m:function(){ return M().box(0,0,0,4,4,3,C.wall).box(3,1,0,1,1,2,C.door).box(1,3,1,1,1,1,C.glass2).box(3,3,1,1,1,1,C.glass2).box(0,0,3,4,4,1,C.roof).box(1,1,4,2,2,1,C.roof2).box(0,0,4,1,1,2,C.stone2); } },
+  { id:"moulin", name:"Moulin", cost:90, lvl:3, m:function(){ return M().box(1,1,0,2,2,5,C.white).box(1,2,0,1,1,1,C.door).box(1,1,5,2,2,1,C.roof).box(3,0,4,1,4,1,C.plank).box(3,1,2,1,1,5,C.plank); } },
+  { id:"tour", name:"Tour", cost:120, lvl:3, m:function(){ return M().box(1,1,0,2,2,7,C.stone).box(2,2,3,1,1,1,C.dark).box(2,2,5,1,1,1,C.dark).box(0,0,7,4,4,1,C.stone2)
+        .box(0,0,8,1,1,1,C.stone2).box(3,0,8,1,1,1,C.stone2).box(0,3,8,1,1,1,C.stone2).box(3,3,8,1,1,1,C.stone2).box(1,1,8,1,1,3,C.wood).box(2,1,10,1,1,1,C.flag); } },
+  { id:"immeuble", name:"Immeuble", cost:170, lvl:4, m:function(){ return M().box(0,0,0,4,4,9,function(i,j,k){ return k%2 ? C.glass : C.glass2; }).box(3,1,0,1,2,1,C.dark).box(0,0,9,4,4,1,C.stone2).box(1,1,10,1,1,2,C.stone); } },
+  { id:"phare", name:"Phare", cost:230, lvl:5, m:function(){ return M().box(0,0,0,4,4,1,C.sand).box(1,1,1,2,2,8,function(i,j,k){ return Math.floor((k-1)/2)%2 ? C.red : C.white; }).box(0,0,9,4,4,1,C.stone2).box(1,1,10,2,2,1,C.gold).box(1,1,11,2,2,1,C.roof); } },
+  { id:"chateau", name:"Château", cost:350, lvl:6, m:function(){ return M().box(0,0,0,4,4,3,C.stone).box(3,1,0,1,2,2,C.door).box(0,0,3,1,1,3,C.stone2).box(3,0,3,1,1,3,C.stone2).box(0,3,3,1,1,3,C.stone2).box(3,3,3,1,1,3,C.stone2)
+        .box(1,1,3,2,2,4,C.stone).box(1,1,7,2,2,1,C.roof).box(1,1,8,1,1,2,C.wood).box(2,1,9,1,1,1,C.flag); } },
+  { id:"statue", name:"Statue d'or", cost:500, lvl:7, m:function(){ return M().box(0,0,0,4,4,1,C.stone).box(1,1,1,2,2,1,C.stone2).box(1,1,2,2,2,4,C.gold).box(1,1,6,1,1,2,C.gold).box(2,2,6,1,1,1,C.gold); } }
+];
+var BY = {}; B.forEach(function(b){ b.vox = b.m().list(); BY[b.id] = b; });
+
+/* ---------- état ---------- */
+var W;
+function norm(d){ d = (d && typeof d === "object") ? d : {};
+    return { total: Math.max(0, +d.total || 0), invested: Math.max(0, +d.invested || 0), project: BY[d.project] ? d.project : "arbre",
+             target: typeof d.target === "string" ? d.target : null, tiles: (d.tiles && typeof d.tiles === "object") ? d.tiles : {} }; }
+try { W = norm(JSON.parse(localStorage.getItem(KEY) || "null")); } catch(e) { W = norm(null); }
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(W)); } catch(e) {} }
+function level(){ return levelOf(W.total); }
+function size(){ return sizeOf(level()); }
+function proj(){ var p = BY[W.project]; if (!p || p.lvl > level()) { p = BY.arbre; W.project = "arbre"; } return p; }
+function inIsland(k){ var p = k.split(","), n = size(); return +p[0] >= 0 && +p[1] >= 0 && +p[0] < n && +p[1] < n; }
+function freeTiles(){ var n = size(), c = (n-1)/2, out = [];
+    for (var x = 0; x < n; x++) for (var y = 0; y < n; y++) if (!W.tiles[x+","+y]) out.push(x+","+y);
+    return out.sort(function(a,b){ var A=a.split(","), Bb=b.split(","); return (Math.abs(A[0]-c)+Math.abs(A[1]-c)) - (Math.abs(Bb[0]-c)+Math.abs(Bb[1]-c)); }); }
+function siteTile(){ if (W.target && !W.tiles[W.target] && inIsland(W.target)) return W.target; var f = freeTiles(); return f[0] || null; }
+
+/* série : jours de focus d'affilée → bonus de briques */
+function streak(){ var h = (window.focusExportState ? window.focusExportState().history : {}) || {}, d = new Date(), n = 0;
+    function k(x){ return x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+String(x.getDate()).padStart(2,"0"); }
+    if (!(h[k(d)] && h[k(d)].n)) d.setDate(d.getDate()-1);
+    while (h[k(d)] && h[k(d)].n) { n++; d.setDate(d.getDate()-1); } return n; }
+function mult(){ return 1 + 0.1 * Math.min(5, Math.max(0, streak() - 1)); }
+
+var anim = null;   // bâtiment qui vient d'être posé (petite chute)
+window.worldAward = function(min, cycleDone){
+    var lv0 = level(), gain = Math.round(min * mult()) + (cycleDone ? 10 : 0);
+    W.total += gain; W.invested += gain;
+    var built = [], p = proj(), t;
+    while (W.invested >= p.cost && (t = siteTile())) { W.tiles[t] = p.id; W.invested -= p.cost; built.push(p.name); W.target = null; anim = { tile:t, t0:performance.now() }; }
+    save(); render();
+    var msg = "+" + gain + " briques" + (cycleDone ? " (dont +10 cycle complet)" : "");
+    if (built.length) msg += " · " + (built.length > 1 ? built.length + "× " : "") + built[0] + " construit" + (built.length > 1 ? "s" : "") + " !";
+    if (level() > lv0) msg += " · Niveau " + level() + " : l'île s'agrandit !";
+    if (!siteTile() && W.invested >= p.cost) msg += " · Île pleine, monte de niveau pour l'agrandir";
+    setTimeout(function(){ if (window.showToast) window.showToast(msg); }, 900);
+    if (anim) loopAnim();
+};
+window.worldExportState = function(){ return JSON.parse(JSON.stringify(W)); };
+window.worldImport = function(d){ W = norm(d); render(); };
+
+/* ---------- rendu isométrique ---------- */
+function shade(hex, f){ var n = parseInt(hex.slice(1), 16); return "rgb("+Math.round((n>>16&255)*f)+","+Math.round((n>>8&255)*f)+","+Math.round((n&255)*f)+")"; }
+function scene(ctx, ox, oy, a){
+    function P(X,Y,Z){ return [ox + (X-Y)*a, oy + (X+Y)*a/2 - Z*a]; }
+    function poly(pts, fill, alpha){ ctx.globalAlpha = alpha; ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]); for (var i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]); ctx.closePath(); ctx.fillStyle = fill; ctx.fill(); }
+    function box(X,Y,Z,w,d,h,top,left,right,alpha,line){
+        alpha = alpha == null ? 1 : alpha;
+        poly([P(X,Y+d,Z+h),P(X+w,Y+d,Z+h),P(X+w,Y+d,Z),P(X,Y+d,Z)], left, alpha);
+        poly([P(X+w,Y,Z+h),P(X+w,Y+d,Z+h),P(X+w,Y+d,Z),P(X+w,Y,Z)], right, alpha);
+        poly([P(X,Y,Z+h),P(X+w,Y,Z+h),P(X+w,Y+d,Z+h),P(X,Y+d,Z+h)], top, alpha);
+        if (line) { ctx.globalAlpha = alpha * .9; ctx.strokeStyle = line; ctx.lineWidth = 1; ctx.stroke(); }
+        ctx.globalAlpha = 1;
+    }
+    function cube(X,Y,Z,c,alpha){ box(X,Y,Z,1,1,1,c,shade(c,.84),shade(c,.68),alpha, alpha < 1 ? null : "rgba(0,0,0,.07)"); }
+    return { P:P, poly:poly, box:box, cube:cube };
+}
+function drawVoxels(sc, list){
+    list.sort(function(p,q){ return (p.x+p.y+p.z) - (q.x+q.y+q.z) || p.z - q.z; });
+    list.forEach(function(v){ sc.cube(v.x, v.y, v.z, v.c, v.a == null ? 1 : v.a); });
+}
+
+var cv = $("wd-canvas"), ctx = cv.getContext("2d"), geo = null, hover = null, picked = null;
+function draw(){
+    var Wd = cv.clientWidth, H = cv.clientHeight; if (!Wd || !H) return;
+    var dpr = window.devicePixelRatio || 1;
+    if (cv.width !== Math.round(Wd*dpr) || cv.height !== Math.round(H*dpr)) { cv.width = Math.round(Wd*dpr); cv.height = Math.round(H*dpr); }
+    ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,Wd,H);
+    var N = size(), S = N*4, TOP = 13;
+    var a = Math.min((Wd-24)/(2*S+4), (H-16)/(S/2*1 + S/2 + TOP + 2) );
+    a = Math.min(a, 14);
+    var ox = Wd/2, oy = (H - (S + TOP + 1)*a)/2 + TOP*a;
+    geo = { ox:ox, oy:oy, a:a, N:N };
+    var sc = scene(ctx, ox, oy, a);
+    // eau autour de l'île
+    sc.poly([sc.P(-3,-3,0), sc.P(S+3,-3,0), sc.P(S+3,S+3,0), sc.P(-3,S+3,0)], "rgba(91,180,229,.22)", 1);
+    ctx.globalAlpha = 1;
+    // sol
+    var site = siteTile();
+    for (var s = 0; s <= 2*(N-1); s++) for (var x = 0; x < N; x++) { var y = s - x; if (y < 0 || y >= N) continue;
+        var k = x+","+y, g = (x+y)%2 ? C.grass : C.grass2;
+        if (k === site) g = "#e8c66a";
+        if (k === hover && !W.tiles[k]) g = "#b6e09f";
+        if (k === picked) g = "#f0a35e";
+        sc.box(x*4, y*4, 0, 4, 4, 1, g, shade(C.dirt, .95), shade(C.dirt, .78), 1, "rgba(0,0,0,.06)"); }
+    // bâtiments + chantier
+    var vox = [], now = performance.now();
+    Object.keys(W.tiles).forEach(function(k){ var b = BY[W.tiles[k]]; if (!b || !inIsland(k)) return; var t = k.split(","), dz = 0;
+        if (anim && anim.tile === k) { var f = Math.min(1, (now - anim.t0)/650); dz = (1-f)*(1-f)*8; }
+        b.vox.forEach(function(v){ vox.push({ x:+t[0]*4+v.x, y:+t[1]*4+v.y, z:1+v.z+dz, c:v.c }); }); });
+    if (site) { var p = proj(), t2 = site.split(","), live = liveGain(), frac = Math.min(1, (W.invested + live)/p.cost);
+        var ord = p.vox.slice().sort(function(u,v){ return u.z - v.z || (u.x+u.y) - (v.x+v.y); }), shown = Math.floor(frac * ord.length);
+        ord.forEach(function(v, i){ vox.push({ x:+t2[0]*4+v.x, y:+t2[1]*4+v.y, z:1+v.z, c:v.c, a: i < shown ? 1 : .16 }); }); }
+    drawVoxels(sc, vox);
+}
+function liveGain(){ var L = window.focusLive ? window.focusLive() : null; return (L && L.running && L.mode === "focus") ? Math.floor(L.doneMin * mult()) : 0; }
+function loopAnim(){ draw(); if (anim && performance.now() - anim.t0 < 700) requestAnimationFrame(loopAnim); else { anim = null; draw(); } }
+
+function tileAt(ev){ if (!geo) return null; var r = cv.getBoundingClientRect(), mx = ev.clientX - r.left, my = ev.clientY - r.top;
+    var u = (mx - geo.ox)/geo.a, v = (my - geo.oy + geo.a)*2/geo.a, X = (u+v)/2, Y = (v-u)/2, tx = Math.floor(X/4), ty = Math.floor(Y/4);
+    return (tx >= 0 && ty >= 0 && tx < geo.N && ty < geo.N) ? tx+","+ty : null; }
+cv.addEventListener("mousemove", function(e){ var k = tileAt(e); if (k !== hover) { hover = k; draw(); } });
+cv.addEventListener("mouseleave", function(){ hover = null; draw(); });
+cv.addEventListener("click", function(e){
+    var k = tileAt(e); picked = null;
+    if (!k) { renderTip(); draw(); return; }
+    if (W.tiles[k]) { picked = k; }
+    else { W.target = k; save(); }
+    render();
+});
+function renderTip(){
+    var el = $("wd-tip");
+    if (picked && W.tiles[picked]) { var b = BY[W.tiles[picked]];
+        el.innerHTML = '<span><b>'+b.name+'</b></span><button type="button" class="btn-ghost" id="wd-demo">Démolir</button><button type="button" class="btn-ghost" id="wd-ok">OK</button>';
+        $("wd-demo").onclick = function(){ if (confirm("Démolir ce bâtiment ? Les briques ne sont pas rendues.")) { delete W.tiles[picked]; picked = null; save(); render(); } };
+        $("wd-ok").onclick = function(){ picked = null; render(); };
+    } else el.innerHTML = "";
+}
+
+/* ---------- interface ---------- */
+function icon(b){ var c = document.createElement("canvas"), s = 64, d = window.devicePixelRatio || 1; c.width = s*d; c.height = s*d;
+    var x = c.getContext("2d"); x.setTransform(d,0,0,d,0,0);
+    var hMax = b.vox.reduce(function(m,v){ return Math.max(m, v.z+1); }, 1), a = Math.min(6.2, (s-6)/(4 + hMax));
+    var sc = scene(x, s/2, (s - (4 + hMax)*a)/2 + hMax*a, a);
+    drawVoxels(sc, b.vox.map(function(v){ return { x:v.x, y:v.y, z:v.z, c:v.c }; })); return c; }
+var icons = {};
+function renderShop(){
+    var lv = level(), box = $("wd-shop"); box.innerHTML = "";
+    B.forEach(function(b){ var lock = b.lvl > lv, btn = document.createElement("button");
+        btn.type = "button"; btn.className = "wd-item" + (lock ? " locked" : ""); btn.setAttribute("aria-pressed", String(W.project === b.id && !lock));
+        if (!icons[b.id]) icons[b.id] = icon(b);
+        btn.appendChild(icons[b.id].cloneNode ? cloneCanvas(icons[b.id]) : icons[b.id]);
+        btn.insertAdjacentHTML("beforeend", '<span>'+b.name+'</span><span class="c">'+(lock ? "niveau "+b.lvl : b.cost+" briques")+'</span>');
+        btn.onclick = function(){ if (lock) { if (window.showToast) window.showToast(b.name+" se débloque au niveau "+b.lvl); return; } W.project = b.id; save(); render(); };
+        box.appendChild(btn); });
+}
+function cloneCanvas(src){ var c = document.createElement("canvas"); c.width = src.width; c.height = src.height; c.getContext("2d").drawImage(src, 0, 0); return c; }
+function render(){
+    var lv = level(), p = proj(), next = LEVELS[lv] , prev = LEVELS[lv-1] || 0, n = Object.keys(W.tiles).length;
+    $("wd-level").textContent = lv; $("wd-bricks").textContent = W.total.toLocaleString("fr-FR"); $("wd-count").textContent = n;
+    $("wd-lvfill").style.width = next ? Math.min(100, (W.total - prev)/(next - prev)*100) + "%" : "100%";
+    var st = streak(), m = mult(), live = liveGain();
+    $("wd-sub").textContent = (next ? (next - W.total) + " briques avant le niveau " + (lv+1) : "Niveau max") +
+        (st > 1 ? " · série de " + st + " jours : ×" + m.toFixed(1).replace(".", ",") : " · enchaîne les jours pour un bonus de briques");
+    var have = Math.min(p.cost, W.invested + live), site = siteTile();
+    $("wd-proj").innerHTML = '<div class="k">'+(live ? "Chantier en cours" : "Prochain chantier")+'</div><b>'+p.name+'</b>'+
+        '<div class="bar"><i class="'+(live?"live":"")+'" style="width:'+(have/p.cost*100)+'%"></i></div>'+
+        '<div class="m">'+have+' / '+p.cost+' briques'+(live ? ' · +'+live+' cette session' : '')+'</div>'+
+        (site ? '' : '<div class="m" style="color:var(--rose)">Île pleine : monte de niveau</div>');
+    renderShop(); renderTip(); draw();
+}
+if (window.ResizeObserver) new ResizeObserver(function(){ draw(); }).observe(cv);
+setInterval(function(){ if (!$("module-focus").hidden && liveGain()) render(); }, 5000);
+render();
+})();
+</script>
+
 <script>
 /* ============================================================================
    MODULE : ACCUEIL — planning de la journée
@@ -3949,8 +4205,8 @@ var SUPABASE_URL = "https://willpykmnhhjqxlqrcqp.supabase.co";
 var SUPABASE_KEY = "sb_publishable_v4jgX7cbNTKyEQuZTxn-NQ_algjo3vw";
 var TABLE = "hp_data";
 var KEYS = ["hashprojects_tasks_v1","hashprojects_history_v1","hashprojects_habits_v1","hashprojects_notes_v1",
-            "hashprojects_planner_v1","hashprojects_focus_v1","hashprojects_carnet_v1","hashprojects_prefs_v1"];
-var OPTIONAL = { "hashprojects_prefs_v1":1 };   // envoyés à part : un refus du serveur ne bloque pas les autres modules
+            "hashprojects_planner_v1","hashprojects_focus_v1","hashprojects_carnet_v1","hashprojects_prefs_v1","hashprojects_world_v1"];
+var OPTIONAL = { "hashprojects_prefs_v1":1, "hashprojects_world_v1":1 };   // envoyés à part : un refus du serveur ne bloque pas les autres modules
 var META = "hashprojects_sync_meta_v1";
 var $ = function(id){ return document.getElementById(id); };
 var toast = function(m){ if (window.showToast) window.showToast(m); };
@@ -3984,6 +4240,7 @@ function applyKey(k, raw){
         case "hashprojects_focus_v1":   if (window.focusImportState) window.focusImportState(d); break;
         case "hashprojects_carnet_v1":  if (window.carnetImportState) window.carnetImportState(d); break;
         case "hashprojects_prefs_v1":   if (window.prefsImport) window.prefsImport(d); break;
+        case "hashprojects_world_v1":   if (window.worldImport) window.worldImport(d); break;
     }
 }
 function rerender(){
