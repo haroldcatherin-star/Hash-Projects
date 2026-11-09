@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HashProjects</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script>/* Mémorise que cet appareil utilise l'app : la vitrine (/) redirigera ici aux prochaines visites. */ try { localStorage.setItem("hp_open_app", "1"); } catch (e) {}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -806,6 +808,8 @@
     .app { padding-top:0; }
     header { align-items:flex-end; margin:28px 0 14px; }
     .eyebrow { font-size:13px; font-weight:500; color:var(--muted); margin-bottom:2px; }
+    .eyebrow-home { color:inherit; text-decoration:none; border-radius:4px; }
+    .eyebrow-home:hover, .eyebrow-home:focus-visible { color:var(--accent); text-decoration:underline; }
     h1 { font-family:var(--display); font-size:2.1rem; font-weight:700; letter-spacing:-.025em; }
     h2 { font-family:var(--display); font-size:1.12rem; font-weight:650; letter-spacing:-.015em; }
     .date { font-weight:500; }
@@ -981,7 +985,7 @@
 <div class="app">
     <header>
         <div>
-            <div class="eyebrow" id="eyebrow">HashProjects / Accueil</div>
+            <div class="eyebrow" id="eyebrow"><a class="eyebrow-home" href="/?accueil" title="Retour au site">HashProjects</a> / Accueil</div>
             <h1 id="page-title">Aujourd'hui</h1>
         </div>
         <div class="head-actions">
@@ -2387,7 +2391,9 @@ function switchModule(name){
     document.getElementById("module-carnet").hidden = name !== "carnet";
     document.querySelectorAll(".module-btn").forEach(b => b.classList.toggle("active", b.dataset.module === name));
     document.getElementById("page-title").innerHTML = MODULE_META[name].title;
-    document.getElementById("eyebrow").textContent = MODULE_META[name].eyebrow;
+    { const eb = document.getElementById("eyebrow"), home = document.createElement("a");
+      home.className = "eyebrow-home"; home.href = "/?accueil"; home.title = "Retour au site"; home.textContent = "HashProjects";
+      eb.textContent = ""; eb.append(home, MODULE_META[name].eyebrow.replace(/^HashProjects/, "")); }
     if (name === "habits") renderHabitsModule();
     if (name === "notes") renderNotesModule();
     if (name === "home" && window.renderHome) window.renderHome();
