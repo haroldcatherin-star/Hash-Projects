@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Contact · HashProjects</title>
+<meta name="description" content="Une question, une idée ou un bug ? Écris à l&#x27;équipe de HashProjects.">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="HashProjects">
+<meta property="og:title" content="Contact · HashProjects">
+<meta property="og:description" content="Une question, une idée ou un bug ? Écris à l&#x27;équipe de HashProjects.">
+<meta property="og:url" content="https://hashprojects.trade/contact/">
+<meta property="og:image" content="https://hashprojects.trade/assets/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="fr_FR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<header class="nav">
+  <div class="wrap">
+    <a class="logo" href="/?accueil"><span class="mark">#</span>HashProjects</a>
+    <nav aria-label="Sections"><a href="/?accueil#modules">Modules</a><a href="/?accueil#ile">Focus &amp; île</a><a href="/?accueil#planning">Planning IA</a><a href="/a-propos/">À propos</a><a href="/?accueil#faq">FAQ</a></nav>
+    <a class="btn" href="/app/" data-open>Ouvrir l'app</a>
+  </div>
+</header>
+<main class="page" id="top">
+  <div class="wrap prose">
+
+    <div class="eyebrow">Contact</div>
+    <h1>Une question, une idée, un bug ?</h1>
+    <p class="lead">Écris-moi, je lis tout.</p>
+    <div class="mail-card">
+      <span class="addr" id="addr">contact@hashprojects.trade</span>
+      <div class="acts"><button class="btn" type="button" id="copy">Copier l'adresse</button><a class="btn soft" href="mailto:contact@hashprojects.trade">Écrire un email</a></div>
+    </div>
+    <p class="copied" id="copied" role="status"></p>
+    <ul>
+      <li>Pour un <strong>bug</strong>, précise si possible ton appareil (PC ou téléphone), ton navigateur et ce que tu faisais à ce moment-là.</li>
+      <li>Pour une <strong>demande sur tes données</strong> (copie, suppression de ton compte), écris depuis l'adresse email de ton compte.</li>
+      <li>Je réponds généralement sous quelques jours.</li>
+    </ul>
+
+  </div>
+</main>
+<footer class="foot">
+  <div class="wrap foot-grid">
+    <div><a class="logo" href="/?accueil"><span class="mark">#</span>HashProjects</a><p>L'app des étudiants : planning, tâches, habitudes, notes, moyenne et focus.</p></div>
+    <nav aria-label="Produit"><b>Produit</b><a href="/?accueil#modules">Modules</a><a href="/?accueil#ile">Focus &amp; île</a><a href="/?accueil#planning">Planning IA</a><a href="/?accueil#faq">FAQ</a><a href="/app/" data-open>Ouvrir l'app</a></nav>
+    <nav aria-label="Infos"><b>Infos</b><a href="/a-propos/">À propos</a><a href="/contact/">Contact</a></nav>
+    <nav aria-label="Légal"><b>Légal</b><a href="/mentions-legales/">Mentions légales</a><a href="/confidentialite/">Confidentialité</a><a href="/conditions/">Conditions d'utilisation</a></nav>
+  </div>
+  <div class="wrap foot-bottom"><span>© 2026 HashProjects</span><span>Fait par Harold Catherin de Perlinghi</span></div>
+</footer>
+<script>document.querySelectorAll("[data-open]").forEach(a => a.addEventListener("click", () => { try { localStorage.setItem("hp_open_app", "1"); } catch (e) {} }));</script>
+<script>
+document.getElementById("copy").addEventListener("click", async () => {
+  const out = document.getElementById("copied"), addr = document.getElementById("addr").textContent;
+  try { await navigator.clipboard.writeText(addr); out.textContent = "Adresse copiée."; }
+  catch (e) { const r = document.createRange(); r.selectNodeContents(document.getElementById("addr")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); out.textContent = "Adresse sélectionnée : fais Ctrl+C (ou Cmd+C) pour la copier."; }
+});
+</script>
+</body>
+</html>
