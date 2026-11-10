@@ -1449,7 +1449,7 @@
             <h2 id="sync-title">Synchronisation</h2>
             <button type="button" class="hp-x" id="sync-close" aria-label="Fermer">×</button>
         </div>
-        <p class="hint">Utilise le même compte sur tous tes appareils. À la première connexion, les données de cet appareil sont envoyées si le cloud est vide ; sinon ce sont celles du cloud qui sont récupérées.</p>
+        <p class="hint" id="sync-hint">Utilise le même compte sur tous tes appareils. À la première connexion, les données de cet appareil sont envoyées si le cloud est vide ; sinon ce sont celles du cloud qui sont récupérées.</p>
         <form class="sync-form" id="sync-form">
             <input type="email" id="sync-email" placeholder="Email" autocomplete="username" required>
             <input type="password" id="sync-pass" placeholder="Mot de passe (6 caractères min.)" autocomplete="current-password" minlength="6" required>
@@ -4664,7 +4664,18 @@ function renderUI(){
     $("sync-now-btn").hidden = !user;
     $("sync-logout-btn").hidden = !user;
 }
-function openModal(){ $("sync-err").textContent = ""; $("sync-overlay").hidden = false; setTimeout(function(){ $("sync-email").focus(); }, 30); }
+/* deux modes : se connecter / créer son compte (ouvert directement depuis le site avec ?compte=creer) */
+var authMode = "login", HINT_LOGIN = $("sync-hint").textContent, fromLink = false;
+function setAuthMode(m){
+    authMode = m === "signup" ? "signup" : "login"; var su = authMode === "signup";
+    $("sync-title").textContent = su ? "Créer ton compte" : "Se connecter";
+    $("sync-hint").textContent = su ? "Gratuit et facultatif : ton compte sert à retrouver ton semestre sur ton PC et ton téléphone. Ce que tu as déjà fait sur cet appareil est conservé." : HINT_LOGIN;
+    $("sync-signin").textContent = su ? "Créer mon compte" : "Se connecter";
+    $("sync-signup").textContent = su ? "J'ai déjà un compte" : "Créer un compte";
+    $("sync-pass").setAttribute("autocomplete", su ? "new-password" : "current-password");
+    $("sync-err").textContent = "";
+}
+function openModal(m){ setAuthMode(m === "signup" ? "signup" : "login"); $("sync-overlay").hidden = false; setTimeout(function(){ $("sync-email").focus(); }, 30); }
 function closeModal(){ $("sync-overlay").hidden = true; }
 
 async function auth(signup){
@@ -4685,11 +4696,11 @@ async function auth(signup){
     closeModal(); toast("Connecté");
 }
 
-$("sync-login-btn").addEventListener("click", openModal);
+$("sync-login-btn").addEventListener("click", function(){ openModal("login"); });
 $("sync-close").addEventListener("click", closeModal);
 $("sync-overlay").addEventListener("click", function(e){ if (e.target === this) closeModal(); });
-$("sync-form").addEventListener("submit", function(e){ e.preventDefault(); auth(false); });
-$("sync-signup").addEventListener("click", function(){ auth(true); });
+$("sync-form").addEventListener("submit", function(e){ e.preventDefault(); auth(authMode === "signup"); });
+$("sync-signup").addEventListener("click", function(){ setAuthMode(authMode === "signup" ? "login" : "signup"); $("sync-email").focus(); });
 $("sync-now-btn").addEventListener("click", function(){ syncNow(true); });
 $("sync-logout-btn").addEventListener("click", async function(){
     if (!confirm("Se déconnecter ? Les données restent sur cet appareil mais ne seront plus synchronisées.")) return;
@@ -4703,6 +4714,7 @@ if (window.supabase && SUPABASE_KEY.indexOf("COLLE") !== 0) {
     sb.auth.onAuthStateChange(function(ev, session){
         var was = user && user.id;
         user = session ? session.user : null;
+        if (user && fromLink && !$("sync-overlay").hidden){ fromLink = false; closeModal(); toast("Tu es déjà connecté."); }
         renderUI();
         if (user && user.id !== was) setTimeout(function(){ syncNow(false); }, 0);
     });
@@ -4716,6 +4728,15 @@ if (window.supabase && SUPABASE_KEY.indexOf("COLLE") !== 0) {
 }
 renderUI();
 window.hpSyncNow = function(){ return syncNow(true); };
+
+/* ---- arrivée depuis le site : ?compte=creer ou ?compte=connexion ---- */
+(function(){
+    var q = new URLSearchParams(location.search).get("compte");
+    if (q !== "creer" && q !== "connexion") return;
+    try { var u = new URL(location.href); u.searchParams.delete("compte"); window.history.replaceState(null, "", u.pathname + u.search + u.hash); } catch(e) {}
+    if (user){ toast("Tu es déjà connecté."); return; }
+    fromLink = true; openModal(q === "creer" ? "signup" : "login");
+})();
 })();
 </script>
 </body>
