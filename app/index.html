@@ -416,6 +416,33 @@
     #module-focus .fo-settings input[type=number] { padding:7px 10px; font-family:var(--mono); }
     #module-focus .fo-settings .toggle { display:flex; align-items:center; gap:8px; color:var(--fg); }
     #module-focus .fo-settings .toggle input { width:16px; height:16px; accent-color:var(--accent); }
+    /* salles de focus */
+    #module-focus .fo-room { justify-self:stretch; border:1px solid var(--line); border-radius:16px; padding:14px 16px; background:var(--surface2); }
+    #module-focus .fo-room-idle { display:flex; gap:14px; align-items:center; justify-content:space-between; flex-wrap:wrap; }
+    #module-focus .fo-room-idle b { display:block; font-size:.95rem; }
+    #module-focus .fo-room-idle span { display:block; font-size:.82rem; color:var(--muted); max-width:34em; }
+    #module-focus .fo-room-join { display:grid; gap:8px; }
+    #module-focus .fo-room-join label { font-size:.85rem; font-weight:600; }
+    #module-focus .fo-room-row { display:flex; gap:8px; flex-wrap:wrap; }
+    #module-focus .fo-room-row input { flex:1 1 160px; min-width:0; padding:9px 12px; }
+    #module-focus .fo-room-row .fo-btn.primary { min-width:0; font-size:.95rem; }
+    #module-focus .fo-room-hint, #module-focus .fo-room-note { font-size:.8rem; color:var(--muted); }
+    #module-focus .fo-room-head { display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap; font-size:.9rem; }
+    #module-focus .fo-room-head b { font-family:var(--mono); letter-spacing:.08em; }
+    #module-focus .fo-room-acts { display:flex; gap:6px; }
+    #module-focus .fo-room-acts .fo-btn { padding:6px 12px; font-size:.82rem; }
+    #module-focus .fo-room-list { list-style:none; display:grid; gap:6px; margin:12px 0 8px; padding:0; }
+    #module-focus .fo-room-list li { display:flex; align-items:center; gap:10px; background:var(--surface); border-radius:10px; padding:7px 10px; }
+    #module-focus .fo-av { width:26px; height:26px; border-radius:8px; display:grid; place-items:center; color:#fff; font-style:normal; font-weight:700; font-size:.8rem; flex:none; }
+    #module-focus .fo-nm { flex:1; min-width:0; font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #module-focus .fo-nm small { color:var(--muted); font-size:.75rem; }
+    #module-focus .fo-nm .fo-host { color:var(--accent); font-weight:600; }
+    #module-focus .fo-st { font-size:.75rem; font-weight:600; padding:3px 9px; border-radius:999px; background:var(--fill); color:var(--muted); white-space:nowrap; }
+    #module-focus .fo-st-focus { background:var(--rose-soft); color:var(--rose); }
+    #module-focus .fo-st-pause { background:var(--green-soft); color:var(--green-ink); }
+    #module-focus .fo-st-absent { background:var(--amber-soft); color:var(--amber-ink); }
+    #module-focus.fo-guest .fo-planner { display:none; }
+    #module-focus.fo-guest .fo-controls .fo-btn, #module-focus.fo-guest .fo-modes button { opacity:.45; }
 
     /* ===================== MODULE : SÉANCES (Planner) ===================== */
     #module-sessions {
@@ -1261,6 +1288,30 @@
                     </div>
                 </div>
             </div>
+
+            <section class="fo-room" id="fo-room" aria-label="Focus à plusieurs">
+                <div class="fo-room-idle" id="fo-room-idle">
+                    <div><b>Focus à plusieurs</b><span>Crée une salle et envoie le lien à tes amis : même minuteur pour tout le monde.</span></div>
+                    <button type="button" class="fo-btn" id="fo-room-create">Créer une salle</button>
+                </div>
+                <form class="fo-room-join" id="fo-room-join" hidden>
+                    <label for="fo-room-name" id="fo-room-joinlbl">Ton pseudo pour la salle</label>
+                    <div class="fo-room-row">
+                        <input id="fo-room-name" maxlength="20" autocomplete="nickname" placeholder="Ex. Léa">
+                        <button class="fo-btn primary" type="submit" id="fo-room-go">Créer la salle</button>
+                        <button type="button" class="fo-btn" id="fo-room-cancel">Annuler</button>
+                    </div>
+                    <p class="fo-room-hint">Les autres voient seulement ton pseudo et si tu es en focus. Jamais tes tâches, tes notes ou ta moyenne.</p>
+                </form>
+                <div class="fo-room-on" id="fo-room-on" hidden>
+                    <div class="fo-room-head">
+                        <span>Salle <b id="fo-room-code"></b> · <span id="fo-room-count"></span></span>
+                        <span class="fo-room-acts"><button type="button" class="fo-btn" id="fo-room-copy">Copier le lien</button><button type="button" class="fo-btn" id="fo-room-leave">Quitter</button></span>
+                    </div>
+                    <ul class="fo-room-list" id="fo-room-list"></ul>
+                    <p class="fo-room-note" id="fo-room-note"></p>
+                </div>
+            </section>
 
             <div class="fo-modes" role="group" aria-label="Mode">
                 <button type="button" data-fomode="focus" aria-pressed="true">Focus</button>
@@ -3335,8 +3386,8 @@ function releaseWake(){ try { if (window.Android && window.Android.keepScreenOn)
 /* requestAnimationFrame est gelé quand l'onglet / l'écran est caché : un timer de secours déclenche la fin à l'heure */
 var endTimer = null;
 function armEnd(){ clearTimeout(endTimer); endTimer = setTimeout(function(){ if (running && Date.now() >= endAt - 50) finish(); else if (running) armEnd(); }, Math.max(0, endAt-Date.now())); }
-function start(){ if (running) return; ensureAudio(); running = true; endAt = Date.now()+remaining*1000; lastSec = -1; $("fo-start").textContent = "Pause"; $("fo-sub").textContent = SUB[mode]; lockWake(); armEnd(); loop(); }
-function pause(){ if (!running) return; running = false; clearTimeout(endTimer); remaining = Math.max(0,(endAt-Date.now())/1000); cancelAnimationFrame(raf); $("fo-start").textContent = "Reprendre"; $("fo-sub").textContent = "En pause"; releaseWake(); draw(); }
+function start(){ if (running) return; ensureAudio(); running = true; endAt = Date.now()+remaining*1000; lastSec = -1; $("fo-start").textContent = "Pause"; $("fo-sub").textContent = SUB[mode]; lockWake(); armEnd(); loop(); roomNotify(); }
+function pause(){ if (!running) return; running = false; clearTimeout(endTimer); remaining = Math.max(0,(endAt-Date.now())/1000); cancelAnimationFrame(raf); $("fo-start").textContent = "Reprendre"; $("fo-sub").textContent = "En pause"; releaseWake(); draw();  roomNotify(); }
 function setMode(m, keepAuto, dur){
     cancelAnimationFrame(raf); clearTimeout(endTimer); running = false; mode = m;
     var pb = st.plan && st.plan.blocks[st.plan.idx];
@@ -3345,7 +3396,7 @@ function setMode(m, keepAuto, dur){
     root.dataset.mode = m;
     document.querySelectorAll("[data-fomode]").forEach(function(b){ b.setAttribute("aria-pressed", b.dataset.fomode === m); });
     $("fo-start").textContent = "Démarrer"; $("fo-sub").textContent = m === "focus" ? "Prêt à se concentrer" : "Pause prête";
-    draw(); renderCycle();
+    draw(); renderCycle(); roomNotify();
     if (keepAuto && settings.auto) start();
 }
 function finish(){
@@ -3356,8 +3407,10 @@ function finish(){
         var k = dayKey(); st.history[k] = st.history[k] || { n:0, min:0 };
         st.history[k].n++; st.history[k].min += Math.round(total/60);
         st.cycle++; save(); renderStats();
-        if (window.worldAward) window.worldAward(Math.round(total/60), st.cycle % settings.every === 0);
+        var gain = window.worldAward ? window.worldAward(Math.round(total/60), st.cycle % settings.every === 0) : 0;
+        if (window.hpRoom) window.hpRoom.focusDone(gain);
     } else if (mode === "long"){ st.cycle = 0; save(); }
+    if (window.hpRoom && window.hpRoom.isGuest()){ $("fo-start").textContent = "Démarrer"; $("fo-sub").textContent = "Bloc terminé · la salle enchaîne"; draw(); return; }
     if (st.plan){ advancePlan(true, mode === "focus" ? "Bloc de focus terminé, pause !" : "Pause finie, on s'y remet."); return; }
     if (mode === "focus"){
         var next = st.cycle % settings.every === 0 ? "long" : "short";
@@ -3431,7 +3484,7 @@ function endPlan(done){
     setMode("focus"); renderPlan();
 }
 $("fo-planForm").addEventListener("submit", function(e){
-    e.preventDefault(); var T = planMinutes(); if (T < 10){ renderPreview(); return; }
+    e.preventDefault(); if (guestBlocked()) return; var T = planMinutes(); if (T < 10){ renderPreview(); return; }
     st.plan = { blocks:buildPlan(T, rhythm()), idx:0 }; st.cycle = 0; save();
     ensureAudio(); loadBlock(true); toast("Session lancée, c'est parti.");
 });
@@ -3486,14 +3539,15 @@ function chime(){
 }
 
 /* ---------- contrôles ---------- */
-$("fo-start").onclick = function(){ running ? pause() : start(); };
-$("fo-reset").onclick = function(){ setMode(mode); };
-$("fo-skip").onclick = skip;
-document.querySelectorAll("[data-fomode]").forEach(function(b){ b.onclick = function(){ setMode(b.dataset.fomode); }; });
+$("fo-start").onclick = function(){ if (guestBlocked()) return; running ? pause() : start(); };
+$("fo-reset").onclick = function(){ if (guestBlocked()) return; setMode(mode); };
+$("fo-skip").onclick = function(){ if (guestBlocked()) return; skip(); };
+document.querySelectorAll("[data-fomode]").forEach(function(b){ b.onclick = function(){ if (guestBlocked()) return; setMode(b.dataset.fomode); }; });
 document.addEventListener("keydown", function(e){
     if (root.hidden) return;
     if (e.target.closest && e.target.closest("input,textarea,select,button")) { if (e.code === "Space") return; }
     if (e.target.matches && e.target.matches("input,textarea,select")) return;
+    if ((e.code === "Space" || /^[rRsS]$/.test(e.key)) && guestBlocked()) { e.preventDefault(); return; }
     if (e.code === "Space"){ e.preventDefault(); running ? pause() : start(); }
     else if (e.key === "r" || e.key === "R") setMode(mode);
     else if (e.key === "s" || e.key === "S") skip();
@@ -3504,6 +3558,39 @@ setInterval(function(){
     if (st.plan) $("fo-end").textContent = hm(planEndTime());
     else if (!(document.activeElement && document.activeElement.closest && document.activeElement.closest("#fo-planForm"))) renderPreview();
 }, 15000);
+
+/* ---------- salle de focus : pont avec le module « salles » ---------- */
+var applying = false;
+function roomNotify(){ if (!applying && window.hpRoom) window.hpRoom.localChanged(); }
+function guestBlocked(){
+    if (applying || !window.hpRoom || !window.hpRoom.isGuest()) return false;
+    toast("Le minuteur est géré par " + window.hpRoom.hostName() + "."); return true;
+}
+window.focusRoom = {
+    snapshot: function(){ return { mode:mode, total:total, running:running, left: running ? Math.max(0, endAt-Date.now()) : remaining*1000 }; },
+    apply: function(s){
+        if (!s || !LABEL[s.mode]) return;
+        applying = true;
+        try {
+            /* le créateur a déjà enchaîné : on termine d'abord notre bloc pour ne pas perdre ses briques */
+            if (running && mode === "focus" && s.mode !== "focus" && endAt - Date.now() < 5000) finish();
+            if (st.plan){ st.plan = null; save(); resetStop(); renderPlan(); }
+            var tot = Math.max(60, Math.round(+s.total || 0));
+            if (s.mode !== mode || tot !== Math.round(total)) setMode(s.mode, false, tot/60);
+            var left = Math.max(0, Math.min(tot*1000, +s.left || 0));
+            if (s.running){
+                if (!running){ remaining = left/1000; start(); }
+                else if (Math.abs((endAt-Date.now()) - left) > 1500){ endAt = Date.now() + left; armEnd(); }
+            } else {
+                if (running) pause();
+                remaining = left/1000; lastSec = -1; draw();
+                var started = remaining < total - 0.5;
+                $("fo-start").textContent = started ? "Reprendre" : "Démarrer";
+                $("fo-sub").textContent = started ? "En pause" : (mode === "focus" ? "Prêt à se concentrer" : "Pause prête");
+            }
+        } finally { applying = false; }
+    }
+};
 
 /* ---------- export / import ---------- */
 window.focusExportState = function(){ return { settings:settings, history:st.history }; };
@@ -3693,6 +3780,12 @@ window.worldAward = function(min, cycleDone){
   var gain = Math.round(min * mult()) + (cycleDone ? 10 : 0);
   S.bricks += gain; S.earned += gain; save(); labels();
   setTimeout(function(){ toast("+" + gain + " briques pour ton île" + (cycleDone ? " (dont +10 cycle complet)" : "")); }, 900);
+  return gain;
+};
+window.worldBonus = function(n, why){
+  n = Math.max(0, Math.round(+n || 0)); if (!n) return;
+  S.bricks += n; S.earned += n; save(); labels();
+  setTimeout(function(){ toast("+" + n + " briques" + (why ? " · " + why : "")); }, 2600);
 };
 window.islandImport = function(d){ S = norm(d); labels(); if (ready) { rebuildAll(); if (!$("isl-ov").hidden) renderShop(); } };
 
@@ -4700,6 +4793,7 @@ $("sync-logout-btn").addEventListener("click", async function(){
 /* ---- démarrage ---- */
 if (window.supabase && SUPABASE_KEY.indexOf("COLLE") !== 0) {
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, { auth:{ persistSession:true, autoRefreshToken:true } });
+    window.hpSupabase = sb;   // utilisé aussi par les salles de focus (temps réel)
     sb.auth.onAuthStateChange(function(ev, session){
         var was = user && user.id;
         user = session ? session.user : null;
@@ -4718,5 +4812,180 @@ renderUI();
 window.hpSyncNow = function(){ return syncNow(true); };
 })();
 </script>
+<script>
+/* ============================================================================
+   SALLES DE FOCUS — se concentrer à plusieurs, en direct.
+   Supabase Realtime : « présence » (qui est là, son statut) + messages (état du minuteur).
+   Pas de compte : un pseudo suffit. Le plus ancien présent (le créateur) pilote le minuteur ;
+   s'il part, le suivant prend le relais. Rien n'est enregistré sur le serveur.
+   ============================================================================ */
+(function(){
+"use strict";
+var $ = function(id){ return document.getElementById(id); };
+var MAX = 8, BONUS = 0.10, ABSENT_LIMIT = 60000, HEARTBEAT = 15000;
+var ALPHA = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+var toast = function(m){ if (window.showToast) window.showToast(m); };
+var LABELS = { focus:"En focus", pause:"En pause", pret:"Prêt", absent:"Absent" };
+
+function newCode(){ var a = new Uint32Array(6), s = ""; crypto.getRandomValues(a); for (var i = 0; i < 6; i++) s += ALPHA[a[i] % ALPHA.length]; return s; }
+function cleanCode(c){ c = String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, ""); return c.length === 6 ? c : null; }
+function cleanName(n){ return String(n || "").replace(/[\u0000-\u001f<>]/g, "").replace(/\s+/g, " ").trim().slice(0, 20); }
+function getPseudo(){ try { return localStorage.getItem("hp_pseudo") || ""; } catch(e) { return ""; } }
+function setPseudo(n){ try { localStorage.setItem("hp_pseudo", n); } catch(e) {} }
+function hue(id){ var h = 0; for (var i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 360; return h; }
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){ return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]; }); }
+function setUrl(code){ try { var u = new URL(location.href); if (code) u.searchParams.set("salle", code); else u.searchParams.delete("salle"); window.history.replaceState(null, "", u.pathname + u.search + u.hash); } catch(e) {} }   /* « history » seul désigne l'historique des tâches de l'app */
+function link(code){ return location.origin + location.pathname + "?salle=" + code; }
+
+var me = { id: (crypto.randomUUID ? crypto.randomUUID() : String(Math.random()).slice(2)), name: "", joinedAt: 0 };
+var room = null, ch = null, members = [], hostId = null, creator = false, beat = null, pending = null;
+var block = null, hiddenSince = null, lastRoster = "";
+
+function isHost(){ return !!room && hostId === me.id; }
+function isGuest(){ return !!room && !!hostId && hostId !== me.id; }
+function hostName(){ var h = members.filter(function(m){ return m.id === hostId; })[0]; return h ? h.name : "le créateur"; }
+function snap(){ return window.focusRoom ? window.focusRoom.snapshot() : null; }
+function status(){ if (document.hidden) return "absent"; var s = snap(); if (s && s.running) return s.mode === "focus" ? "focus" : "pause"; return "pret"; }
+/* on n'annonce sa présence que si quelque chose a changé : évite les allers-retours inutiles */
+var lastTrack = "";
+function track(force){
+  if (!ch || !room) return;
+  var data = { id:me.id, name:me.name, joinedAt:me.joinedAt, status:status() }, sig = JSON.stringify(data);
+  if (!force && sig === lastTrack) return;
+  lastTrack = sig; ch.track(data).catch(function(){ lastTrack = ""; });
+}
+
+/* ---------- bonus de groupe : suivi du bloc de focus en cours ---------- */
+function watchBlock(){ var s = snap(); if (room && s && s.running && s.mode === "focus" && !block) block = { absentMs:0 }; }
+
+/* ---------- temps réel ---------- */
+function readPresence(){
+  var stt = ch.presenceState(), seen = {}, list = [];
+  Object.keys(stt).forEach(function(k){ (stt[k] || []).forEach(function(m){ if (m && m.id && !seen[m.id]) { seen[m.id] = 1; list.push(m); } }); });
+  return list.sort(function(a, b){ return (a.joinedAt - b.joinedAt) || (a.id < b.id ? -1 : 1); });
+}
+function onSync(){
+  if (!ch) return;
+  members = readPresence();
+  /* l'horloge d'un invité peut retarder : il passe toujours après ceux déjà présents */
+  if (!creator && members.length > 1){
+    var others = members.filter(function(m){ return m.id !== me.id; }), maxJ = Math.max.apply(null, others.map(function(m){ return m.joinedAt; }));
+    if (me.joinedAt <= maxJ && !me.fixed){ me.joinedAt = maxJ + 1; me.fixed = true; track(true); return; }
+  }
+  var idx = members.map(function(m){ return m.id; }).indexOf(me.id);
+  if (idx >= MAX){ leave("Cette salle est pleine (8 personnes maximum)."); return; }
+  var before = hostId, roster = members.map(function(m){ return m.id; }).join(",");
+  hostId = members.length ? members[0].id : me.id;
+  if (before && before !== me.id && hostId === me.id) toast("Tu gères maintenant le minuteur de la salle.");
+  /* l'état du minuteur n'est renvoyé que si la liste des présents ou le meneur change (pas à chaque statut) */
+  if (isHost() && (roster !== lastRoster || before !== hostId)) send();
+  lastRoster = roster;
+  render();
+}
+function send(){
+  var s = snap(); if (!ch || !isHost() || !s) return;
+  ch.send({ type:"broadcast", event:"timer", payload:{ from:me.id, s:s } }).catch(function(){});
+}
+function onTimer(msg){
+  var p = msg && msg.payload; if (!p || !p.s || p.from === me.id) return;
+  if (hostId && p.from !== hostId) return;
+  window.focusRoom.apply(p.s); watchBlock(); track(); render();
+}
+
+function join(code, name, isCreator){
+  var sb = window.hpSupabase;
+  if (!sb || !sb.channel){ toast("Les salles ont besoin d'une connexion internet. Réessaie dans un instant."); return; }
+  if (room) leave();
+  me.name = name; me.joinedAt = Date.now(); me.fixed = false; creator = !!isCreator; lastTrack = ""; lastRoster = "";
+  room = code; members = []; hostId = isCreator ? me.id : null; block = null;
+  setPseudo(name); setUrl(code); pending = null;
+  ch = sb.channel("hp-salle-" + code, { config:{ presence:{ key:me.id }, broadcast:{ self:false } } });
+  ch.on("presence", { event:"sync" }, onSync)
+    .on("broadcast", { event:"timer" }, onTimer)
+    .on("broadcast", { event:"hello" }, function(){ if (isHost()) send(); })
+    .subscribe(function(state){
+      if (state === "SUBSCRIBED"){ track(true); ch.send({ type:"broadcast", event:"hello", payload:{ from:me.id } }).catch(function(){}); render(); }
+      else if ((state === "CHANNEL_ERROR" || state === "TIMED_OUT") && room === code){ render("Connexion à la salle impossible pour l'instant. Vérifie ta connexion."); }
+    });
+  clearInterval(beat); beat = setInterval(function(){ if (isHost()) send(); }, HEARTBEAT);
+  watchBlock(); render();
+}
+function leave(msg){
+  clearInterval(beat); beat = null;
+  if (ch){ var c = ch; ch = null; c.untrack().catch(function(){}); try { window.hpSupabase.removeChannel(c); } catch(e) {} }
+  room = null; members = []; hostId = null; block = null; creator = false;
+  setUrl(null); render(); if (msg) toast(msg);
+}
+
+/* ---------- interface ---------- */
+function show(id, on){ $(id).hidden = !on; }
+function render(error){
+  var root = $("module-focus");
+  root.classList.toggle("fo-in-room", !!room);
+  root.classList.toggle("fo-guest", isGuest());
+  show("fo-room-idle", !room && !pending);
+  show("fo-room-join", !room && !!pending);
+  show("fo-room-on", !!room);
+  if (pending){ $("fo-room-joinlbl").textContent = pending.code ? "Rejoindre la salle " + pending.code + " · ton pseudo" : "Ton pseudo pour la salle"; $("fo-room-go").textContent = pending.code ? "Rejoindre" : "Créer la salle"; }
+  if (!room) return;
+  $("fo-room-code").textContent = room;
+  $("fo-room-count").textContent = members.length + " / " + MAX;
+  $("fo-room-list").innerHTML = members.map(function(m){
+    var st = m.status in LABELS ? m.status : "pret";
+    return '<li><i class="fo-av" style="background:hsl(' + hue(m.id) + ' 62% 52%)">' + esc((m.name || "?").charAt(0).toUpperCase()) + '</i>' +
+      '<span class="fo-nm">' + esc(m.name || "?") + (m.id === me.id ? " <small>(toi)</small>" : "") + (m.id === hostId ? ' <small class="fo-host">minuteur</small>' : "") + '</span>' +
+      '<span class="fo-st fo-st-' + st + '">' + LABELS[st] + '</span></li>';
+  }).join("");
+  $("fo-room-note").textContent = error || (isGuest() ? "Le minuteur est géré par " + hostName() + ". Tu gagnes tes briques normalement, avec +10 % si tu tiens jusqu'au bout du bloc." :
+    members.length < 2 ? "Envoie le lien à tes amis. Tu gères le minuteur de la salle." : "Tu gères le minuteur : tout le monde suit tes départs et tes pauses. +10 % de briques pour ceux qui tiennent jusqu'au bout du bloc.");
+}
+function ask(code){
+  pending = { code:code || null };
+  $("fo-room-name").value = getPseudo(); render();
+  setTimeout(function(){ $("fo-room-name").focus(); }, 50);
+}
+
+$("fo-room-create").addEventListener("click", function(){ ask(null); });
+$("fo-room-cancel").addEventListener("click", function(){ pending = null; setUrl(null); render(); });
+$("fo-room-join").addEventListener("submit", function(e){
+  e.preventDefault();
+  var name = cleanName($("fo-room-name").value);
+  if (name.length < 2){ toast("Choisis un pseudo d'au moins 2 caractères."); $("fo-room-name").focus(); return; }
+  var p = pending || {}; join(p.code || newCode(), name, !p.code);
+});
+$("fo-room-leave").addEventListener("click", function(){ leave("Tu as quitté la salle."); });
+$("fo-room-copy").addEventListener("click", function(){
+  var url = link(room);
+  var done = function(){ toast("Lien copié : envoie-le à tes amis."); };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, function(){ window.prompt("Copie ce lien :", url); });
+  else window.prompt("Copie ce lien :", url);
+});
+document.addEventListener("visibilitychange", function(){
+  if (document.hidden){ hiddenSince = Date.now(); }
+  else if (hiddenSince){ if (block) block.absentMs += Date.now() - hiddenSince; hiddenSince = null; }
+  track();
+});
+window.addEventListener("pagehide", function(){ if (ch) ch.untrack().catch(function(){}); });
+
+/* ---------- API pour le minuteur ---------- */
+window.hpRoom = {
+  isGuest: isGuest,
+  hostName: hostName,
+  localChanged: function(){ if (!room) return; watchBlock(); if (isHost()) send(); track(); render(); },
+  focusDone: function(gain){
+    if (!room || !block){ block = null; return; }
+    var absent = block.absentMs + (hiddenSince ? Date.now() - hiddenSince : 0), group = members.length >= 2;
+    block = null;
+    if (group && absent <= ABSENT_LIMIT && window.worldBonus) window.worldBonus(Math.max(1, Math.round((gain || 0) * BONUS)), "bonus de groupe");
+  }
+};
+
+/* ---------- arrivée par un lien d'invitation ---------- */
+var invited = cleanCode(new URLSearchParams(location.search).get("salle"));
+if (invited){ if (typeof switchModule === "function") switchModule("focus"); ask(invited); }
+else render();
+})();
+</script>
+
 </body>
 </html>
