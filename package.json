@@ -8,10 +8,12 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "captures": "node scripts/captures.mjs"
+    "captures": "node scripts/captures.mjs",
+    "marque": "node scripts/marque.mjs"
   },
   "devDependencies": {
     "puppeteer-core": "^24.43.1",
+    "qrcode": "^1.5.4",
     "vite": "^6.3.5"
   }
 }
