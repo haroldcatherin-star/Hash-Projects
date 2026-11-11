@@ -14,6 +14,7 @@ const pages = [
   "conditions/index.html",
   "confidentialite/index.html",
   "mentions-legales/index.html",
+  "presse/index.html",
 ];
 
 export default defineConfig({
