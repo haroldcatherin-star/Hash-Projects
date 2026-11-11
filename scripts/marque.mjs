@@ -28,11 +28,11 @@ function symbol(v) {
     noir: { sun: "#111111", top: "#111111", under: "#111111", facet: "#111111" },
     blanc: { sun: "#FFFFFF", top: "#FFFFFF", under: "#FFFFFF", facet: "#FFFFFF" },
   }[v];
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 17 72 75">
-  <circle cx="50" cy="30" r="9" fill="${p.sun}"/>
-  <path d="M18 52 H82 L56 84 Q50 90 44 84 Z" fill="${p.under}"/>
-  <path d="M50 52 H82 L56 84 Q53 87 50 87.5 Z" fill="${p.facet}"/>
-  <rect x="18" y="47" width="64" height="9" rx="4.5" fill="${p.top}"/>
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="14 13 72 75">
+  <circle cx="50" cy="26" r="9" fill="${p.sun}"/>
+  <path d="M23 48 H77 L55.6 78 Q50 85.9 44.4 78 Z" fill="${p.under}"/>
+  <path d="M50 48 H77 L55.6 78 Q52.8 81.95 50 81.95 Z" fill="${p.facet}"/>
+  <rect x="18" y="43" width="64" height="10" rx="5" fill="${p.top}"/>
 </svg>`;
 }
 const uri = (svg) => "data:image/svg+xml;base64," + Buffer.from(svg).toString("base64");
