@@ -891,7 +891,8 @@ function exportData(){
         const plannerData = window.plannerExportState ? window.plannerExportState() : { sessions: [] };
         const focusData = window.focusExportState ? window.focusExportState() : null;
         const carnetData = window.carnetExportState ? window.carnetExportState() : null;
-        const payload = { exportedAt: new Date().toISOString(), tasks, history, habits: habitState, notes: notesState, planner: plannerData, focus: focusData, carnet: carnetData };
+        const islandData = window.islandExportState ? window.islandExportState() : null;
+        const payload = { exportedAt: new Date().toISOString(), tasks, history, habits: habitState, notes: notesState, planner: plannerData, focus: focusData, carnet: carnetData, island: islandData };
         if (window.Android && typeof window.Android.saveFile === "function") {
             window.Android.saveFile(i18n.t("export.filename", { date: todayStr() }), JSON.stringify(payload, null, 2));
             return;
@@ -922,14 +923,16 @@ document.getElementById("file-import").addEventListener("change", e => {
             const okPlanner = parsed.planner && Array.isArray(parsed.planner.sessions);
             const okFocus = parsed.focus && typeof parsed.focus === "object";
             const okCarnet = parsed.carnet && Array.isArray(parsed.carnet.subjects);
-            if (!okTasks && !okHabits && !okNotes && !okPlanner && !okFocus && !okCarnet) throw new Error("format invalide");
-            if (confirm("Remplacer toutes les données actuelles (tâches, habitudes, notes, séances, carnet et focus) par celles du fichier importé ?")) {
+            const okIsland = parsed.island && typeof parsed.island === "object" && parsed.island.tiles && typeof parsed.island.tiles === "object";
+            if (!okTasks && !okHabits && !okNotes && !okPlanner && !okFocus && !okCarnet && !okIsland) throw new Error("format invalide");
+            if (confirm("Remplacer toutes les données actuelles (tâches, habitudes, notes, séances, carnet, focus et île) par celles du fichier importé ?")) {
                 if (okTasks) { tasks = parsed.tasks; history = Array.isArray(parsed.history) ? parsed.history : []; saveTasks(); }
                 if (okHabits) { habitState = parsed.habits; saveHabits(); }
                 if (okNotes) { notesState = normalizeNotes(parsed.notes); saveNotes(); }
                 if (okPlanner && window.plannerImportState) window.plannerImportState(parsed.planner);
                 if (okFocus && window.focusImportState) window.focusImportState(parsed.focus);
                 if (okCarnet && window.carnetImportState) window.carnetImportState(parsed.carnet);
+                if (okIsland && window.islandImport) window.islandImport(parsed.island, true);
                 renderTasksModule();
                 renderHabitsModule();
                 renderNotesModule();
