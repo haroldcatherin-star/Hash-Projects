@@ -37,6 +37,7 @@ const SHOTS = [
   { name: "phone-focus", module: "focus", viewport: phone, wait: 3500 },
   { name: "og", page: "/scripts/og.html", viewport: { width: 1200, height: 630, deviceScaleFactor: 1 }, wait: 800 },
   { name: "fonsai-logo", page: "/favicon.svg", viewport: { width: 1024, height: 1024, deviceScaleFactor: 1 }, png: true, wait: 300 },
+  { name: "apple-touch-icon", page: "/scripts/icon-square.html", viewport: { width: 180, height: 180, deviceScaleFactor: 1 }, png: true, dir: "..", wait: 300 },
 ];
 
 const only = process.argv.slice(2);
@@ -80,7 +81,7 @@ try {
     await new Promise((r) => setTimeout(r, s.wait || 1200));
     await page.evaluate(() => document.getElementById("toast")?.classList.remove("show"));
 
-    const file = resolve(OUT, s.name + (s.png ? ".png" : ".jpg"));
+    const file = resolve(OUT, s.dir || ".", s.name + (s.png ? ".png" : ".jpg"));
     await page.screenshot(s.png ? { path: file, type: "png", omitBackground: true } : { path: file, type: "jpeg", quality: 84 });
     console.log("✓", s.name);
     await page.close();

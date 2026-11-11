@@ -1,8 +1,8 @@
 /* Layout: app-like grouped surfaces; the island at golden hour is the one loud moment. */
 :root{
-  --bg:#f2f2f7; --surface:#ffffff; --surface2:#f7f7fa; --line:#e5e5ea; --fg:#1d1d1f; --fg2:#3a3a3c; --muted:#6e6e73;
-  --accent:#007aff; --accent-soft:rgba(0,122,255,.1); --torii:#d0342c; --grass:#7f9a2e; --sky:#9b93c9; --peach:#e9b9a3;
-  --ink-on-accent:#ffffff; --glass:rgba(242,242,247,.78); --shadow:0 18px 50px -24px rgba(20,20,40,.35);
+  --bg:#f4efe6; --surface:#fffdf8; --surface2:#f9f5ee; --line:#e4dccb; --fg:#1e2a22; --fg2:#3a463e; --muted:#6b7268;
+  --accent:#2a6049; --accent-soft:rgba(42,96,73,.11); --sun:#c7472f; --brand:#1e3a2b; --torii:#d0342c; --grass:#7f9a2e; --sky:#9b93c9; --peach:#e9b9a3;
+  --ink-on-accent:#f7f2e8; --glass:rgba(244,239,230,.82); --shadow:0 18px 50px -24px rgba(20,20,40,.35);
   --dusk-1:#9b93c9; --dusk-2:#d7a6b0; --dusk-3:#f1d6c4; --dusk-fg:#1d1d1f;
   --display:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
   --body:"Inter",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
@@ -10,14 +10,14 @@
   --r:22px; --gut:max(16px,env(safe-area-inset-left,0px));
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#000000; --surface:#1c1c1e; --surface2:#2c2c2e; --line:#38383a; --fg:#f5f5f7; --fg2:#d1d1d6; --muted:#98989d;
-  --accent:#0a84ff; --accent-soft:rgba(10,132,255,.18); --torii:#ff5a4e; --grass:#a3c14a; --sky:#8f87c0; --peach:#e3ad98;
-  --glass:rgba(0,0,0,.72); --shadow:0 18px 50px -20px rgba(0,0,0,.8);
+  --bg:#0f1a14; --surface:#18251d; --surface2:#213028; --line:#2e3d34; --fg:#efe9dd; --fg2:#d3ccbe; --muted:#9aa096;
+  --accent:#7fb894; --accent-soft:rgba(127,184,148,.16); --sun:#f0765c; --brand:#7fb894; --ink-on-accent:#0f1a14; --torii:#ff5a4e; --grass:#a3c14a; --sky:#8f87c0; --peach:#e3ad98;
+  --glass:rgba(15,26,20,.78); --shadow:0 18px 50px -20px rgba(0,0,0,.8);
   --dusk-1:#3a3468; --dusk-2:#6d4a6a; --dusk-3:#8a5f55; --dusk-fg:#f5f5f7; color-scheme:dark}}
 :root[data-theme="dark"]{
-  --bg:#000000; --surface:#1c1c1e; --surface2:#2c2c2e; --line:#38383a; --fg:#f5f5f7; --fg2:#d1d1d6; --muted:#98989d;
-  --accent:#0a84ff; --accent-soft:rgba(10,132,255,.18); --torii:#ff5a4e; --grass:#a3c14a; --sky:#8f87c0; --peach:#e3ad98;
-  --glass:rgba(0,0,0,.72); --shadow:0 18px 50px -20px rgba(0,0,0,.8);
+  --bg:#0f1a14; --surface:#18251d; --surface2:#213028; --line:#2e3d34; --fg:#efe9dd; --fg2:#d3ccbe; --muted:#9aa096;
+  --accent:#7fb894; --accent-soft:rgba(127,184,148,.16); --sun:#f0765c; --brand:#7fb894; --ink-on-accent:#0f1a14; --torii:#ff5a4e; --grass:#a3c14a; --sky:#8f87c0; --peach:#e3ad98;
+  --glass:rgba(15,26,20,.78); --shadow:0 18px 50px -20px rgba(0,0,0,.8);
   --dusk-1:#3a3468; --dusk-2:#6d4a6a; --dusk-3:#8a5f55; --dusk-fg:#f5f5f7; color-scheme:dark}
 
 *{box-sizing:border-box;margin:0;padding:0}
@@ -29,7 +29,7 @@ img{max-width:100%;display:block}
 :focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
 .wrap{max-width:1180px;margin:0 auto;padding-left:var(--gut);padding-right:max(16px,env(safe-area-inset-right,0px))}
 h1,h2,h3{font-family:var(--display);letter-spacing:-.03em;text-wrap:balance}
-.eyebrow{font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--accent)}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--sun)}
 .mono{font-family:var(--mono)}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:999px;background:var(--accent);color:var(--ink-on-accent);font-weight:600;font-size:16px;text-decoration:none;transition:transform .15s,filter .15s}
 .btn:hover{filter:brightness(1.08)} .btn:active{transform:scale(.97)}
