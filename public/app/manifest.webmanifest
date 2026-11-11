@@ -1,0 +1,17 @@
+{
+  "name": "Fonsai",
+  "short_name": "Fonsai",
+  "description": "Fonsai, make focus addictive.",
+  "lang": "fr",
+  "id": "/app/",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F4EFE6",
+  "theme_color": "#5E8C61",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/apple-touch-icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}

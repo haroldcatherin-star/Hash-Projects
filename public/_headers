@@ -1,8 +1,8 @@
-# En-têtes Cloudflare Pages
-/sw.js
+# En-têtes HTTP (Cloudflare)
+/app/sw.js
   Cache-Control: no-cache
 
-/manifest.webmanifest
+/app/manifest.webmanifest
   Cache-Control: no-cache
 
 /*

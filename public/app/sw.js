@@ -3,7 +3,7 @@
    - CDN (Three.js, Supabase, polices) : cache d'abord, mis à jour en arrière-plan.
    - Supabase (synchro) n'est jamais mis en cache. */
 const CACHE = "fonsai-v1";
-const SHELL = ["/", "/manifest.webmanifest", "/icons/fonsai.svg"];
+const SHELL = ["/app/", "/app/manifest.webmanifest", "/favicon.svg"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -25,7 +25,7 @@ self.addEventListener("fetch", (e) => {
 
   // Fichiers du site (non versionnés) : réseau d'abord, cache en secours.
   if (url.origin === self.location.origin) {
-    const key = req.mode === "navigate" ? "/" : req;
+    const key = req.mode === "navigate" ? "/app/" : req;
     e.respondWith(
       fetch(req)
         .then((res) => { if (res.ok) { const copy = res.clone(); caches.open(CACHE).then((c) => c.put(key, copy)); } return res; })

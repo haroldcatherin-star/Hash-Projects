@@ -873,7 +873,9 @@ function switchModule(name){
     document.getElementById("module-carnet").hidden = name !== "carnet";
     document.querySelectorAll(".module-btn").forEach(b => b.classList.toggle("active", b.dataset.module === name));
     document.getElementById("page-title").textContent = i18n.t(MODULE_META[name].title);
-    document.getElementById("eyebrow").textContent = i18n.t("app.name") + " / " + i18n.t(MODULE_META[name].label);
+    { const eb = document.getElementById("eyebrow"), home = document.createElement("a");
+      home.className = "eyebrow-home"; home.href = "/?accueil"; home.title = "Retour au site"; home.textContent = i18n.t("app.name");
+      eb.textContent = ""; eb.append(home, " / " + i18n.t(MODULE_META[name].label)); }
     if (name === "habits") renderHabitsModule();
     if (name === "notes") renderNotesModule();
     if (name === "home" && window.renderHome) window.renderHome();

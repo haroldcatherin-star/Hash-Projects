@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fonsai</title>
+<meta name="description" content="Fonsai, make focus addictive. Pomodoro, tâches, habitudes et une île zen qui grandit avec ton focus.">
+<meta name="theme-color" content="#5E8C61">
+<link rel="manifest" href="/app/manifest.webmanifest">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<script>/* Mémorise que cet appareil utilise l'app : la vitrine (/) redirigera ici aux prochaines visites. */ try { localStorage.setItem("hp_open_app", "1"); } catch (e) {}</script>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fonsai">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/styles/app.css">
+</head>
+<body>
+
+<div class="app">
+    <header>
+        <div>
+            <div class="eyebrow" id="eyebrow"><a class="eyebrow-home" href="/?accueil" title="Retour au site">Fonsai</a> / Accueil</div>
+            <h1 id="page-title">Aujourd'hui</h1>
+        </div>
+        <div class="head-actions">
+            <div class="date" id="date"></div>
+            <button class="lock-btn" id="themeBtn" onclick="cycleTheme()">Thème : auto</button>
+            <button class="lock-btn" id="pzBtn" type="button" data-i18n="header.customize">Personnaliser</button>
+        </div>
+    </header>
+
+    <nav class="topnav">
+        <button class="module-btn home-btn active" data-module="home" title="Accueil" aria-label="Accueil"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 10.5 12 3.5l8.5 7"/><path d="M5.5 9v11h13V9"/><path d="M10 20v-5.5h4V20"/></svg></button>
+        <div class="modules">
+            <button class="module-btn" data-module="tasks" title="Tâches" aria-label="Tâches" data-i18n-title="module.tasks" data-i18n-aria="module.tasks"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3.5"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg><span class="lbl" data-i18n="module.tasks">Tâches</span></button>
+            <button class="module-btn" data-module="habits" title="Habitudes" aria-label="Habitudes" data-i18n-title="module.habits" data-i18n-aria="module.habits"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 13.2-4.9"/><path d="M18 3.5v4h-4"/><path d="M19.5 12a7.5 7.5 0 0 1-13.2 4.9"/><path d="M6 20.5v-4h4"/></svg><span class="lbl" data-i18n="module.habits">Habitudes</span></button>
+            <button class="module-btn" data-module="notes" title="Notes" aria-label="Notes" data-i18n-title="module.notes" data-i18n-aria="module.notes"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h8.5l4 4v13H6z"/><path d="M14 3.5v4.5h4.5"/><path d="M9 13h6.5M9 16.5h4.5"/></svg><span class="lbl" data-i18n="module.notes">Notes</span></button>
+            <button class="module-btn" data-module="sessions" title="Séances" aria-label="Séances" data-i18n-title="module.sessions" data-i18n-aria="module.sessions"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="lbl" data-i18n="module.sessions">Séances</span></button>
+            <button class="module-btn" data-module="carnet" title="Carnet" aria-label="Carnet" data-i18n-title="module.carnet" data-i18n-aria="module.carnet"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 20V11M12 20V4.5M18.5 20v-6.5"/></svg><span class="lbl" data-i18n="module.carnet">Carnet</span></button>
+            <button class="module-btn" data-module="focus" title="Focus" aria-label="Focus" data-i18n-title="module.focus" data-i18n-aria="module.focus"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13.5" r="7"/><path d="M12 10v3.5l2.5 2M10 2.5h4"/></svg><span class="lbl" data-i18n="module.focus">Focus</span></button>
+        </div>
+    </nav>
+
+    <!-- ===================== MODULE : TÂCHES ===================== -->
+    <!-- ===================== MODULE : ACCUEIL ===================== -->
+    <div id="module-home">
+        <div class="hm-top panel">
+            <div class="hm-week" id="hm-week"></div>
+            <div class="hm-stats" id="hm-stats"></div>
+        </div>
+        <div class="hm-layout">
+            <section class="panel hm-plan">
+                <div class="hm-planhead">
+                    <div>
+                        <h2 id="hm-dayTitle"></h2>
+                        <span class="count">Clique sur un créneau pour ajouter une séance</span>
+                    </div>
+                    <button type="button" class="btn-ghost hm-pastebtn" id="hm-pasteBtn">Coller un planning</button>
+                </div>
+                <div id="hm-next"></div>
+                <div id="hm-events"></div>
+                <div id="hm-earlierWrap"></div>
+                <div class="hm-tl" id="hm-tl"></div>
+            </section>
+            <div class="hm-side">
+            <section class="panel hm-up" id="hm-sec-up">
+                <div class="section-title"><h2>À venir</h2><button type="button" class="hm-evadd" id="hm-evAdd">+ Event</button></div>
+                <div class="hm-uplist" id="hm-up"></div>
+            </section>
+            <section class="panel" id="hm-sec-habits">
+                <div class="section-title"><h2>Habitudes</h2><span class="count" id="hm-habCount"></span></div>
+                <div class="hm-list" id="hm-habits"></div>
+            </section>
+            <aside class="panel" id="hm-sec-notime">
+                <div class="section-title"><h2>Sans heure</h2><span class="count" id="hm-sideCount"></span></div>
+                <div class="hm-list" id="hm-list"></div>
+                <form class="hm-add" id="hm-addTask">
+                    <input type="text" id="hm-taskInput" maxlength="120" placeholder="Ajouter une tâche…">
+                    <button type="submit" aria-label="Ajouter">Ajouter</button>
+                </form>
+            </aside>
+            </div>
+        </div>
+    </div>
+
+    <div class="layout" id="module-tasks" hidden>
+        <main class="panel">
+            <div class="add">
+                <input id="taskInput" type="text" placeholder="Ajouter une tâche..." maxlength="120">
+                <button onclick="addTask()">Ajouter</button>
+            </div>
+
+            <div class="filters">
+                <button class="filter active" data-filter="all" onclick="setTaskFilter('all')">Toutes</button>
+                <button class="filter" data-filter="todo" onclick="setTaskFilter('todo')">À faire</button>
+                <button class="filter" data-filter="doing" onclick="setTaskFilter('doing')">En cours</button>
+                <button class="filter" data-filter="done" onclick="setTaskFilter('done')">Done</button>
+                <select id="taskSort" class="task-sort" onchange="setTaskSort(this.value)" aria-label="Trier">
+                    <option value="manual">Ordre perso</option>
+                    <option value="date">Par échéance</option>
+                </select>
+            </div>
+
+            <div id="tasks"></div>
+        </main>
+
+        <aside class="panel">
+            <div class="section-title">
+                <h2>Vue d'ensemble</h2>
+                <span class="count" id="totalCount">0 tâches</span>
+            </div>
+
+            <div class="stats">
+                <div class="stat"><strong id="todoCount">0</strong><span>À faire</span></div>
+                <div class="stat"><strong id="doingCount">0</strong><span>En cours</span></div>
+                <div class="stat"><strong id="doneCount">0</strong><span>Terminées</span></div>
+            </div>
+
+            <div style="margin-bottom:25px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);">
+                    <span>Progression</span><span id="progressText">0%</span>
+                </div>
+                <div class="progress"><div id="progressBar"></div></div>
+            </div>
+
+            <div class="section-title">
+                <h2>Historique</h2>
+                <button class="clear" onclick="clearHistory()">Effacer</button>
+            </div>
+            <div class="history" id="history"></div>
+        </aside>
+    </div>
+
+    <!-- ===================== MODULE : HABITUDES ===================== -->
+    <div class="layout" id="module-habits" hidden>
+        <main class="panel">
+            <div class="daynav">
+                <button class="nav-btn" id="day-prev">‹</button>
+                <div class="day-label" id="day-label"></div>
+                <button class="nav-btn" id="day-next">›</button>
+            </div>
+            <div class="skipbar" id="skipbar"></div>
+
+            <div class="add-habit">
+                <input id="habitInput" type="text" placeholder="Ajouter une habitude..." maxlength="60">
+                <select id="habitCategorySelect">
+                    <option value="Académique">Académique</option>
+                    <option value="Santé">Santé</option>
+                    <option value="Discipline">Discipline</option>
+                    <option value="Autre">Autre</option>
+                </select>
+                <button onclick="addHabit()">Ajouter</button>
+            </div>
+
+            <div class="filters" id="habit-filters">
+                <button class="filter active" data-cat="all">Toutes</button>
+                <button class="filter" data-cat="Académique">Académique</button>
+                <button class="filter" data-cat="Santé">Santé</button>
+                <button class="filter" data-cat="Discipline">Discipline</button>
+                <button class="filter" data-cat="paused">En pause</button>
+            </div>
+
+            <div id="habit-list"></div>
+        </main>
+
+        <aside class="panel">
+            <div class="section-title">
+                <h2>Vue d'ensemble</h2>
+                <span class="count" id="habitTotalCount">0 habitudes</span>
+            </div>
+
+            <div class="stats">
+                <div class="stat"><strong id="stat-perfect-streak">0</strong><span>jours parfaits</span></div>
+                <div class="stat"><strong id="stat-rate-7">0%</strong><span>taux — 7 j</span></div>
+                <div class="stat"><strong id="stat-rate-30">0%</strong><span>taux — 30 j</span></div>
+            </div>
+
+            <div style="margin-bottom:22px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);">
+                    <span>Progression du jour</span><span id="habitProgressText">0%</span>
+                </div>
+                <div class="progress"><div id="habitProgressBar"></div></div>
+            </div>
+
+            <div class="section-title">
+                <h2>Par habitude — 30 jours</h2>
+                <span class="count">clic = détails</span>
+            </div>
+            <div class="habit-ranking" id="habit-ranking"></div>
+
+            <div class="section-title">
+                <h2>Activité — 30 jours</h2>
+            </div>
+            <div class="bars-mini" id="bars30"></div>
+            <div class="bars-caption"><span id="bars-start"></span><span id="bars-end"></span></div>
+
+            <div class="section-title">
+                <h2>Assiduité — 13 sem.</h2>
+            </div>
+            <div class="heatmap" id="heatmap"></div>
+            <div class="heat-legend">
+                <span>Moins</span>
+                <div class="heat-cell"></div>
+                <div class="heat-cell b25"></div>
+                <div class="heat-cell b50"></div>
+                <div class="heat-cell b75"></div>
+                <div class="heat-cell b100"></div>
+                <span>Plus</span>
+            </div>
+            <div class="skip-bulk">
+                <button type="button" class="btn-ghost" id="skipEmptyBtn">Ignorer les jours vides (30 j)</button>
+                <p class="hint">Un jour ignoré ne compte ni dans tes taux, ni dans tes séries, et ne casse pas une série en cours.</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- ===================== MODULE : NOTES ===================== -->
+    <div class="layout" id="module-notes" hidden>
+        <main class="panel nt-main">
+            <textarea id="notesArea" placeholder="Note tout ce qui te passe par la tête..."></textarea>
+            <div class="nt-tabs" id="nt-tabs" role="tablist" aria-label="Pages"></div>
+        </main>
+
+        <aside class="panel">
+            <div class="section-title">
+                <h2>Page</h2>
+                <span class="count" id="nt-count"></span>
+            </div>
+            <div class="nt-name">
+                <input type="text" id="nt-nameInput" maxlength="40" aria-label="Nom de la page">
+                <button type="button" class="nt-del" id="nt-del" title="Supprimer la page">Supprimer</button>
+            </div>
+            <div class="stats notes-stats">
+                <div class="stat"><strong id="notesWords">0</strong><span>mots</span></div>
+                <div class="stat"><strong id="notesChars">0</strong><span>caractères</span></div>
+            </div>
+            <p class="hint">Sauvegarde automatique.<br>Dernière modif : <span id="notesSavedAt">jamais</span>.<br>Double-clique sur un onglet pour le renommer.</p>
+        </aside>
+    </div>
+
+    <!-- ===================== MODULE : CARNET (notes scolaires) ===================== -->
+    <div class="layout" id="module-carnet" hidden>
+        <main class="panel">
+            <div class="section-title">
+                <h2>Matières</h2>
+                <span class="count" id="cn-count"></span>
+            </div>
+            <div class="cn-subjects" id="cn-subjects"></div>
+            <form class="cn-newsub" id="cn-newSub">
+                <input type="text" id="cn-subName" placeholder="Nouvelle matière (ex. Analyse)" aria-label="Nom de la matière" maxlength="60">
+                <label class="cn-coef">Coef. <input type="number" id="cn-subCoef" value="1" min="0" step="0.5" aria-label="Coefficient de la matière"></label>
+                <button type="submit">Ajouter la matière</button>
+            </form>
+        </main>
+
+        <aside class="panel">
+            <div class="section-title">
+                <h2>Moyenne générale</h2>
+                <div class="cn-seg" role="group" aria-label="Échelle d'affichage" id="cn-scale"></div>
+            </div>
+            <div class="cn-big" id="cn-big">—</div>
+            <p class="hint" id="cn-hint"></p>
+            <div class="cn-bars" id="cn-bars"></div>
+            <p class="hint" style="margin-top:16px">Entre chaque note sur son propre barème (/20, /4, /100…) : tout est ramené sur l'échelle choisie. La barre verticale marque la moitié.</p>
+        </aside>
+    </div>
+
+    <!-- ===================== MODULE : FOCUS (Pomodoro) ===================== -->
+    <div class="layout" id="module-focus" data-mode="focus" hidden>
+        <main class="panel fo-timer" aria-label="Minuteur">
+            <div class="fo-planner">
+                <h2>Session lock in</h2>
+                <form class="fo-planrow" id="fo-planForm">
+                    <label>Durée totale
+                        <span class="fo-dur"><input type="number" id="fo-h" min="0" max="12" value="2" aria-label="Heures"> h
+                        <input type="number" id="fo-m" min="0" max="59" step="5" value="0" aria-label="Minutes"> min</span>
+                    </label>
+                    <label>Rythme
+                        <select id="fo-r">
+                            <option value="mine" id="fo-mine">Mes réglages</option>
+                            <option value="25">25 / 5 (classique)</option>
+                            <option value="50">50 / 10 (deep work)</option>
+                            <option value="90">90 / 20 (ultradien)</option>
+                        </select>
+                    </label>
+                    <button class="fo-gen" type="submit">Générer mes timers</button>
+                </form>
+                <div class="fo-preview" id="fo-preview"></div>
+                <div class="fo-active" id="fo-active" hidden>
+                    <div class="fo-timeline" id="fo-timeline"></div>
+                    <div class="fo-planmeta">
+                        <span id="fo-step"></span>
+                        <span>Fin prévue <b id="fo-end">--h--</b></span>
+                        <button class="fo-stop" id="fo-stop" type="button">Arrêter la session</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="fo-modes" role="group" aria-label="Mode">
+                <button type="button" data-fomode="focus" aria-pressed="true">Focus</button>
+                <button type="button" data-fomode="short" aria-pressed="false">Pause courte</button>
+                <button type="button" data-fomode="long" aria-pressed="false">Pause longue</button>
+            </div>
+            <div class="fo-dial">
+                <svg viewBox="0 0 200 200" aria-hidden="true">
+                    <g id="fo-ticks"></g>
+                    <circle cx="100" cy="100" r="78" fill="none" stroke="var(--line)" stroke-width="8"/>
+                    <circle id="fo-ring" cx="100" cy="100" r="78" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" transform="rotate(-90 100 100)" style="transition:stroke .4s"/>
+                </svg>
+                <div class="fo-readout">
+                    <div class="fo-time" id="fo-time">25:00</div>
+                    <div class="fo-sub" id="fo-sub">Prêt à se concentrer</div>
+                </div>
+            </div>
+            <div class="fo-cycle" id="fo-cycle" title="Pomodoros avant la pause longue"></div>
+            <div class="fo-controls">
+                <button type="button" class="fo-btn" id="fo-reset" title="Réinitialiser (R)">Réinitialiser</button>
+                <button type="button" class="fo-btn primary" id="fo-start">Démarrer</button>
+                <button type="button" class="fo-btn" id="fo-skip" title="Passer (S)">Passer</button>
+            </div>
+            <div class="fo-keys"><kbd>Espace</kbd> démarrer/pause · <kbd>R</kbd> réinitialiser · <kbd>S</kbd> passer</div>
+        </main>
+
+        <aside class="panel">
+            <div class="section-title">
+                <h2>Aujourd'hui</h2>
+                <span class="count" id="fo-weekTotal"></span>
+            </div>
+            <div class="stats">
+                <div class="stat"><strong id="fo-stToday">0</strong><span>Pomodoros</span></div>
+                <div class="stat"><strong id="fo-stMin">0 min</strong><span>Focus</span></div>
+                <div class="stat"><strong id="fo-stStreak">0 j</strong><span>Série</span></div>
+            </div>
+            <div class="section-title" style="margin-bottom:0"><h2>7 derniers jours</h2></div>
+            <div class="fo-bars" id="fo-bars"></div>
+
+            <details>
+                <summary>Réglages</summary>
+                <div class="fo-settings">
+                    <label>Focus (min)<input type="number" id="fo-s-focus" min="1" max="120"></label>
+                    <label>Pause courte (min)<input type="number" id="fo-s-short" min="1" max="60"></label>
+                    <label>Pause longue (min)<input type="number" id="fo-s-long" min="1" max="60"></label>
+                    <label>Pause longue tous les<input type="number" id="fo-s-every" min="2" max="8"></label>
+                    <label class="toggle"><input type="checkbox" id="fo-s-auto"> Enchaîner auto.</label>
+                    <label class="toggle"><input type="checkbox" id="fo-s-sound"> Son de fin</label>
+                    <label class="toggle"><input type="checkbox" id="fo-s-tick"> Tic-tac</label>
+                </div>
+            </details>
+            <button type="button" class="isl-card" id="isl-card" aria-label="Entrer dans ton île">
+                <span class="isl-host" id="isl-mini"></span>
+                <span class="isl-foot"><span>Ton île · <b id="isl-bal">0</b> briques</span><span class="go">Entrer →</span></span>
+            </button>
+        </aside>
+    </div>
+
+    <!-- ===================== MODULE : SÉANCES ===================== -->
+    <div id="module-sessions" hidden>
+        <div class="tabs">
+            <button data-pltab="week" class="on">Planning</button>
+            <button data-pltab="done">Faites <span class="count" id="plCDone"></span></button>
+        </div>
+
+        <!-- ============ SEMAINE + À FAIRE ============ -->
+        <section id="plVWeek">
+            <div class="pl-stats">
+                <div class="pl-stat"><div class="k">Planifié</div><div class="v" id="plSPlan">0<small>h</small></div></div>
+                <div class="pl-stat"><div class="k">Fait</div><div class="v" id="plSDone">0<small>h</small></div><div class="bar"><i id="plSBar" style="width:0%"></i></div></div>
+                <div class="pl-stat"><div class="k">Séances</div><div class="v" id="plSCount">0</div></div>
+                <div class="pl-stat"><div class="k">Top matière</div><div class="v" id="plSTop" style="font-size:18px">—</div></div>
+            </div>
+
+            <div class="weeknav">
+                <button class="arrow" id="plPrevW">‹</button>
+                <button class="arrow" id="plNextW">›</button>
+                <div>
+                    <div class="label" id="plWLabel"></div>
+                    <div class="sub" id="plWSub"></div>
+                </div>
+                <div class="spacer"></div>
+                <div class="span-toggle" id="plSpanToggle">
+                    <button class="on" data-span="1">1 sem.</button>
+                    <button data-span="4">4 sem.</button>
+                </div>
+                <button class="ghost" id="plAddEventBtn">+ Event</button>
+                <button class="ghost" id="plTodayBtn">Aujourd'hui</button>
+            </div>
+
+            <div id="plWeekGrid"></div>
+
+            <div class="pl-panel" id="plDropTodo" style="margin-top:18px">
+                <h2>À faire <span class="count" id="plCTodo"></span></h2>
+                <p class="hint">Séances pas encore casées dans un jour. Glisse une carte sur un jour ci-dessus pour la planifier, ou coche pour la valider directement.</p>
+                <form class="quick" id="plQuickForm">
+                    <input type="text" id="plQName" placeholder="Matière / sujet…" required>
+                    <input type="number" id="plQDur" value="60" min="5" step="5" style="width:90px" title="durée en minutes">
+                    <button class="go" type="submit">Ajouter</button>
+                </form>
+                <div id="plTodoList"></div>
+            </div>
+        </section>
+
+        <!-- ============ FAITES ============ -->
+        <section id="plVDone" hidden>
+            <div class="pl-stats">
+                <div class="pl-stat"><div class="k">Total fait</div><div class="v" id="plDTotal">0<small>h</small></div></div>
+                <div class="pl-stat"><div class="k">Cette semaine</div><div class="v" id="plDWeek">0<small>h</small></div></div>
+                <div class="pl-stat"><div class="k">Séances faites</div><div class="v" id="plDCount">0</div></div>
+                <div class="pl-stat"><div class="k">Moy. / semaine</div><div class="v" id="plDAvg">0<small>h</small></div></div>
+            </div>
+            <div class="pl-panel" style="margin-bottom:14px">
+                <h2>8 dernières semaines</h2>
+                <p class="hint">Heures de travail validées par semaine.</p>
+                <div class="pl-chart" id="plChart"></div>
+            </div>
+            <div class="pl-panel">
+                <h2>Historique</h2>
+                <p class="hint">Tout ce qui a été validé, du plus récent au plus ancien.</p>
+                <div id="plDoneList"></div>
+            </div>
+        </section>
+
+        <div class="overlay" id="plOverlay" hidden>
+            <div class="pl-modal">
+                <h2 id="plMTitle">Nouvelle séance</h2>
+                <form id="plMForm">
+                    <div class="f"><label>Matière / sujet</label><input type="text" id="plMName" required placeholder="Analyse — TD chapitre 3"></div>
+                    <div class="f f2">
+                        <div><label>Jour</label><button type="button" class="date-trigger" id="plMDateBtn"></button><input type="hidden" id="plMDate"></div>
+                        <div><label>Début</label><input type="time" id="plMTime"></div>
+                    </div>
+                    <div class="f f2">
+                        <div><label>Fin</label><input type="time" id="plMEnd"></div>
+                        <div><label>Durée (minutes)</label><input type="number" id="plMDur" min="5" step="1" value="60" required></div>
+                    </div>
+                    <div class="mbtns">
+                        <button class="save" type="submit">Enregistrer</button>
+                        <button class="cancel" type="button" id="plMCancel">Annuler</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="overlay" id="plEventOverlay" hidden>
+            <div class="pl-modal">
+                <h2 id="plEMTitle">Nouvel event</h2>
+                <form id="plEMForm">
+                    <div class="f"><label>Titre</label><input type="text" id="plEMName" required placeholder="Semaine d'examens, voyage…"></div>
+                    <div class="f f2">
+                        <div><label>Début</label><button type="button" class="date-trigger" id="plEMStartBtn"></button><input type="hidden" id="plEMStart"></div>
+                        <div><label>Fin</label><button type="button" class="date-trigger" id="plEMEndBtn"></button><input type="hidden" id="plEMEnd"></div>
+                    </div>
+                    <div class="mbtns">
+                        <button class="save" type="submit">Enregistrer</button>
+                        <button class="cancel" type="button" id="plEMCancel">Annuler</button>
+                    </div>
+                    <button type="button" class="event-delete-btn" id="plEMDelete" hidden>Supprimer l'event</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel data-panel">
+        <div>
+            <p id="sync-text">Tes données sont stockées sur cet appareil. Connecte-toi pour les synchroniser entre ton PC, ton téléphone et l'app.</p>
+            <span class="sync-status" style="margin-top:6px"><span class="sync-dot" id="sync-dot"></span><span id="sync-label">Non connecté</span></span>
+        </div>
+        <div class="data-actions">
+            <button id="sync-login-btn">Se connecter</button>
+            <button id="sync-now-btn" hidden>Synchroniser</button>
+            <button id="sync-logout-btn" hidden>Déconnexion</button>
+            <button onclick="exportData()">Exporter</button>
+            <button onclick="document.getElementById('file-import').click()">Importer</button>
+        </div>
+        <input type="file" id="file-import" accept="application/json" hidden>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="hp-overlay" id="sync-overlay" hidden>
+    <div class="hp-modal" role="dialog" aria-modal="true" aria-labelledby="sync-title" style="max-width:380px">
+        <div class="hp-head">
+            <h2 id="sync-title">Synchronisation</h2>
+            <button type="button" class="hp-x" id="sync-close" aria-label="Fermer">×</button>
+        </div>
+        <p class="hint" id="sync-hint">Utilise le même compte sur tous tes appareils. À la première connexion, les données de cet appareil sont envoyées si le cloud est vide ; sinon ce sont celles du cloud qui sont récupérées.</p>
+        <form class="sync-form" id="sync-form">
+            <input type="email" id="sync-email" placeholder="Email" autocomplete="username" required>
+            <input type="password" id="sync-pass" placeholder="Mot de passe (6 caractères min.)" autocomplete="current-password" minlength="6" required>
+            <p class="sync-err" id="sync-err"></p>
+            <div class="hp-btns">
+                <button type="button" class="btn-ghost" id="sync-signup">Créer un compte</button>
+                <button type="submit" id="sync-signin">Se connecter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="hp-overlay" id="hs-overlay" hidden onclick="if (event.target === this) closeHabitStats()">
+    <div class="hp-modal" role="dialog" aria-modal="true" aria-labelledby="hs-title" style="max-width:520px">
+        <div class="hp-head">
+            <h2 id="hs-title">Habitude</h2>
+            <button type="button" class="hp-x" onclick="closeHabitStats()" aria-label="Fermer">×</button>
+        </div>
+        <div id="hs-body"></div>
+    </div>
+</div>
+
+<div class="isl-ov" id="isl-ov" hidden role="dialog" aria-modal="true" aria-labelledby="isl-title">
+    <div class="isl-stage" id="isl-stage">
+        <div class="isl-host" id="isl-big"></div>
+        <div class="isl-chip" id="isl-chip" hidden></div>
+    </div>
+    <div class="isl-side">
+        <div class="isl-top"><h2 id="isl-title">Ton île</h2><button type="button" class="btn-ghost" id="isl-close">Retour</button></div>
+        <div class="isl-wallet"><b><span id="isl-bal2">0</span><small>briques</small></b><span id="isl-earn">1 minute de focus = 1 brique</span></div>
+        <p class="isl-hint" id="isl-hint">Choisis un élément, puis clique une case libre pour le poser.</p>
+        <div class="isl-shop" id="isl-shop"></div>
+        <div class="pz-line"><span>Lumière</span><div class="pz-seg" id="isl-light" role="group" aria-label="Lumière"></div></div>
+        <button type="button" class="btn-ghost" id="isl-grow">Agrandir l'île</button>
+    </div>
+</div>
+
+<div class="hp-overlay" id="pz-overlay" hidden>
+    <div class="hp-modal pz-modal" role="dialog" aria-modal="true" aria-labelledby="pz-title">
+        <div class="hp-head">
+            <h2 id="pz-title">Personnaliser</h2>
+            <button type="button" class="hp-x" id="pz-close" aria-label="Fermer">×</button>
+        </div>
+        <p class="hint">Les changements s'appliquent tout de suite et suivent ton compte sur tes appareils.</p>
+        <div id="pz-body"></div>
+    </div>
+</div>
+
+<div class="hp-overlay" id="hp-overlay" hidden>
+    <div class="hp-modal" role="dialog" aria-modal="true" aria-labelledby="hp-title">
+        <div class="hp-head">
+            <h2 id="hp-title">Coller un planning</h2>
+            <button type="button" class="hp-x" id="hp-close" aria-label="Fermer">×</button>
+        </div>
+        <p class="hint">Colle ici le bloc <code>#HASHPLAN</code> que Claude t'a donné. Les blocs sont <b>ajoutés</b> à ceux qui existent déjà (les doublons exacts sont ignorés).</p>
+        <textarea id="hp-text" spellcheck="false" placeholder="#HASHPLAN 2026-10-12&#10;09:00 90 Analyse — chapitre 3&#10;10:30 15 Pause&#10;14:00-16:00 Physique — TD&#10;- 30 Lecture&#10;TÂCHE Rendre le DM"></textarea>
+        <button type="button" class="btn-ghost hp-clip" id="hp-clip">Coller depuis le presse-papiers</button>
+        <div class="hp-preview" id="hp-preview"></div>
+        <div class="hp-btns">
+            <button type="button" class="btn-ghost" id="hp-cancel">Annuler</button>
+            <button type="button" id="hp-ok" disabled>Ajouter</button>
+        </div>
+    </div>
+</div>
+
+<script src="/app/js/i18n.js"></script>
+<script src="/app/js/core.js"></script>
+<script src="/app/js/personnaliser.js"></script>
+<script src="/app/js/seances.js"></script>
+<script src="/app/js/focus.js"></script>
+<script src="/app/js/carnet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="/app/js/ile.js"></script>
+<script src="/app/js/accueil.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js"></script>
+<script src="/app/js/synchro.js"></script>
+<script>
+// Hors ligne + installable : service worker uniquement en production (pas sur le serveur de dev).
+if ("serviceWorker" in navigator && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+    window.addEventListener("load", function(){ navigator.serviceWorker.register("/app/sw.js", { scope: "/app/" }).catch(function(e){ console.warn("SW", e); }); });
+}
+</script>
+</body>
+</html>
