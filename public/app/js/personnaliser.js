@@ -89,7 +89,7 @@ function renderPanel(){
     var cur = P.accent || "";
     var sw = '<button type="button" class="pz-def" data-accent="" aria-pressed="'+(!cur)+'">Par défaut</button>' +
         COLORS.map(function(c){ return '<button type="button" style="--c:'+c[1]+'" data-accent="'+c[1]+'" title="'+c[0]+'" aria-label="'+c[0]+'" aria-pressed="'+(cur.toLowerCase()===c[1])+'"></button>'; }).join("") +
-        '<label class="pz-custom" title="Couleur libre"><input type="color" id="pz-accentCustom" value="'+(cur || "#0a84ff")+'"><span>Autre</span></label>';
+        '<label class="pz-custom" title="Couleur libre"><input type="color" id="pz-accentCustom" value="'+(cur || "#2a6049")+'"><span>Autre</span></label>';
     var subs = subjects();
     var subHtml = subs.length ? subs.map(function(s){ var c = P.subjectColors[s.k];
         return '<div class="pz-row"><input type="color" class="pz-col" data-subj="'+esc(s.k)+'" value="'+(c || "#8e8e93")+'" aria-label="Couleur de '+esc(s.label)+'">'+

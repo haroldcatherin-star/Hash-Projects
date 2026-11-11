@@ -1,14 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#F4EFE6"/>
-  <!-- feuillage -->
-  <ellipse cx="200" cy="170" rx="96" ry="62" fill="#5E8C61"/>
-  <ellipse cx="318" cy="150" rx="84" ry="56" fill="#76A56F"/>
-  <ellipse cx="350" cy="236" rx="70" ry="46" fill="#5E8C61"/>
-  <ellipse cx="168" cy="252" rx="62" ry="40" fill="#76A56F"/>
-  <!-- tronc -->
-  <path d="M244 372c-6-48 8-78 40-104 22-18 30-38 18-62M262 300c-22-14-52-24-84-40M286 262c22-6 42-14 60-26"
-        fill="none" stroke="#6B4A34" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- pot -->
-  <rect x="140" y="368" width="232" height="26" rx="10" fill="#B5583A"/>
-  <path d="M160 394h192l-20 58a16 16 0 0 1-15 11H195a16 16 0 0 1-15-11z" fill="#C96A48"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <rect width="100" height="100" rx="22" fill="#1E3A2B"/>
+  <circle cx="50" cy="30" r="9" fill="#E2553B"/>
+  <path d="M18 52 H82 L56 84 Q50 90 44 84 Z" fill="#909783"/>
+  <path d="M50 52 H82 L56 84 Q53 87 50 87.5 Z" fill="#7C8370"/>
+  <rect x="18" y="47" width="64" height="9" rx="4.5" fill="#EDE3CC"/>
 </svg>
