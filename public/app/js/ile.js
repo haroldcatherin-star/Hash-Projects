@@ -46,7 +46,10 @@ window.worldAward = function(min, cycleDone){
   S.bricks += gain; S.earned += gain; save(); labels();
   setTimeout(function(){ toast("+" + gain + " briques pour ton île" + (cycleDone ? " (dont +10 cycle complet)" : "")); }, 900);
 };
-window.islandImport = function(d){ S = norm(d); labels(); if (ready) { rebuildAll(); if (!$("isl-ov").hidden) renderShop(); } };
+// persist : true pour un import de fichier. La synchro, elle, a déjà écrit le localStorage
+// (réenregistrer ici la ferait renvoyer l'île au serveur).
+window.islandImport = function(d, persist){ S = norm(d); if (persist) save(); labels(); if (ready) { rebuildAll(); if (!$("isl-ov").hidden) renderShop(); } };
+window.islandExportState = function(){ return JSON.parse(JSON.stringify(S)); };
 
 function labels(){
   var st = streak(), m = mult();
