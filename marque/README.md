@@ -3,7 +3,7 @@
 **Fonsai, make focus addictive.**
 
 Tout ce qu'il faut pour parler de Fonsai, le présenter et le montrer : logos, couleurs, textes, visuels pour les réseaux et documents.
-Commence par **`06-documents/guide-de-marque-fonsai.pdf`** : il résume tout en 11 pages.
+Commence par **`06-documents/livret-fonsai.pdf`** : il raconte Fonsai en 13 pages, du problème à la suite. Le **guide de marque** (`guide-de-marque-fonsai.pdf`) détaille ensuite les règles.
 
 ## Contenu
 
@@ -16,7 +16,7 @@ Commence par **`06-documents/guide-de-marque-fonsai.pdf`** : il résume tout en 
 | `03-typographie/` | Les polices (Inter, JetBrains Mono) et leurs usages | Toute création avec du texte |
 | `04-textes/` | Pitch (de 5 mots à 1 page, FR et EN), slogans, ton de voix, bios des réseaux, descriptions de store, messages types | Écrire sur Fonsai |
 | `05-reseaux-sociaux/` | Photo de profil, bannières LinkedIn et X, posts Instagram, story | Ouvrir et habiller les comptes |
-| `06-documents/` | Guide de marque (PDF, 11 pages) et fiche de présentation (PDF, A4) | Envoyer à un partenaire, un média, une asso |
+| `06-documents/` | Livret « L'histoire de Fonsai » (PDF, 13 pages, avec un fil rouge), guide de marque (PDF, 11 pages) et fiche de présentation (PDF, A4) | Présenter Fonsai d'un bout à l'autre, l'envoyer à un partenaire, un média, une asso |
 | `07-captures/` | Captures de l'app (ordinateur et téléphone, clair et sombre), l'île, l'image de partage | Articles, présentations, posts |
 
 ## L'essentiel en 30 secondes

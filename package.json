@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "captures": "node scripts/captures.mjs",
-    "marque": "node scripts/marque.mjs"
+    "marque": "node scripts/marque.mjs && node scripts/livret.mjs",
+    "livret": "node scripts/livret.mjs"
   },
   "devDependencies": {
     "puppeteer-core": "^24.43.1",
