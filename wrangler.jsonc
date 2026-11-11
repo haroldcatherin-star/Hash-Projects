@@ -1,9 +1,10 @@
 {
   // Site statique servi par le Worker « hash-projects » (Workers Builds depuis GitHub).
+  // Build command à régler dans Cloudflare : npm run build  → publie le dossier dist/.
   "name": "hash-projects",
   "compatibility_date": "2026-11-01",
   "assets": {
-    "directory": ".",
+    "directory": "./dist",
     // Une adresse inconnue affiche 404.html avec le statut 404.
     "not_found_handling": "404-page",
     "html_handling": "auto-trailing-slash"
