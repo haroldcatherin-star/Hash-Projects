@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#F4EFE6"/>
+  <!-- feuillage -->
+  <ellipse cx="200" cy="170" rx="96" ry="62" fill="#5E8C61"/>
+  <ellipse cx="318" cy="150" rx="84" ry="56" fill="#76A56F"/>
+  <ellipse cx="350" cy="236" rx="70" ry="46" fill="#5E8C61"/>
+  <ellipse cx="168" cy="252" rx="62" ry="40" fill="#76A56F"/>
+  <!-- tronc -->
+  <path d="M244 372c-6-48 8-78 40-104 22-18 30-38 18-62M262 300c-22-14-52-24-84-40M286 262c22-6 42-14 60-26"
+        fill="none" stroke="#6B4A34" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- pot -->
+  <rect x="140" y="368" width="232" height="26" rx="10" fill="#B5583A"/>
+  <path d="M160 394h192l-20 58a16 16 0 0 1-15 11H195a16 16 0 0 1-15-11z" fill="#C96A48"/>
+</svg>
